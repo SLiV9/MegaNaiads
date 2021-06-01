@@ -10,6 +10,7 @@ enum STATE {
 }
 
 var state = STATE.PLAYER
+var has_passed = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -43,26 +44,20 @@ func _ready():
 	$PlayerHand.set_process_input(true)
 	$Table.set_process_input(true)
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
-
 func _input(ev):
 	if ev is InputEventMouseButton:
 		if ev.pressed:
 			match state:
 				STATE.PLAYER:
-					var ownCard = $PlayerHand.get_raised_card()
-					var tableCard = $Table.get_raised_card()
-					if ownCard != null and tableCard != null:
-						$PlayerHand.exchange_cards(ownCard, tableCard)
-						$Table.exchange_cards(tableCard, ownCard)
-						$Table.set_process_input(false)
-						state = STATE.BOT_LEFT
+					if not has_passed:
+						var ownCard = $PlayerHand.get_raised_card()
+						var tableCard = $Table.get_raised_card()
+						if ownCard != null and tableCard != null:
+							$PlayerHand.exchange_cards(ownCard, tableCard)
+							$Table.exchange_cards(tableCard, ownCard)
+							disable_player_controls()
+							state = STATE.BOT_LEFT
 				STATE.BOT_LEFT:
-					if $PlayerHand.get_raised_card() != null:
-						pass
 					# TODO use AI to determine which action to take
 					var ownCard = $StrangerLeft/Hand.cards[0]
 					var tableCard = $Table.cards[0]
@@ -70,8 +65,6 @@ func _input(ev):
 					$Table.exchange_cards(tableCard, ownCard)
 					state = STATE.BOT_MID
 				STATE.BOT_MID:
-					if $PlayerHand.get_raised_card() != null:
-						pass
 					# TODO use AI to determine which action to take
 					var ownCard = $StrangerMid/Hand.cards[1]
 					var tableCard = $Table.cards[1]
@@ -79,14 +72,52 @@ func _input(ev):
 					$Table.exchange_cards(tableCard, ownCard)
 					state = STATE.BOT_RIGHT
 				STATE.BOT_RIGHT:
-					if $PlayerHand.get_raised_card() != null:
-						pass
 					# TODO use AI to determine which action to take
 					var ownCard = $StrangerRight/Hand.cards[2]
 					var tableCard = $Table.cards[2]
 					$StrangerRight/Hand.exchange_cards(ownCard, tableCard)
 					$Table.exchange_cards(tableCard, ownCard)
-					$Table.set_process_input(true)
+					enable_player_controls()
 					state = STATE.PLAYER
 				STATE.END:
 					pass
+		else:
+			match state:
+				STATE.PLAYER:
+					if has_passed:
+						state = STATE.BOT_LEFT
+					elif $PassButton.pressed:
+						has_passed = true
+						disable_player_controls()
+						state = STATE.BOT_LEFT
+					elif $SwapButton.pressed:
+						for i in range(0, 3):
+							var ownCard = $PlayerHand.cards[i]
+							var tableCard = $Table.cards[i]
+							$PlayerHand.exchange_cards(ownCard, tableCard)
+							$Table.exchange_cards(tableCard, ownCard)
+						has_passed = true
+						disable_player_controls()
+						state = STATE.BOT_LEFT
+				STATE.BOT_LEFT:
+					pass
+				STATE.BOT_MID:
+					pass
+				STATE.BOT_RIGHT:
+					pass
+				STATE.END:
+					pass
+
+func enable_player_controls():
+	if has_passed:
+		return
+	$PlayerHand.set_process_input(true)
+	$Table.set_process_input(true)
+	$PassButton.visible = true
+	$SwapButton.visible = true
+
+func disable_player_controls():
+	$PlayerHand.set_process_input(false)
+	$Table.set_process_input(false)
+	$PassButton.visible = false
+	$SwapButton.visible = false
