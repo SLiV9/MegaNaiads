@@ -5,35 +5,52 @@
 
 [node name="Node2D" type="Node2D"]
 
-[node name="StrangerLeft" parent="." instance=ExtResource( 1 )]
-position = Vector2( 58.219, 146.06 )
-
-[node name="StrangerMid" parent="." instance=ExtResource( 1 )]
-position = Vector2( 437.755, 98.06 )
-
-[node name="StrangerRight" parent="." instance=ExtResource( 1 )]
-position = Vector2( 830.38, 146.06 )
-
-[node name="Table" parent="." instance=ExtResource( 2 )]
-position = Vector2( 501.755, 402.189 )
-
-[node name="PlayerHand" parent="." instance=ExtResource( 2 )]
-position = Vector2( 87.0442, 523.935 )
-
-[node name="TextBox" type="ColorRect" parent="."]
-margin_top = 600.0
-margin_right = 1200.0
-margin_bottom = 800.0
-color = Color( 0.184314, 0.184314, 0.184314, 1 )
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_left = -600.0
+margin_top = -600.0
+margin_right = 1800.0
+margin_bottom = 1800.0
+color = Color( 0.0745098, 0.0627451, 0.0901961, 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="RichTextLabel" type="RichTextLabel" parent="TextBox"]
-margin_left = 20.0
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 600, 400 )
+
+[node name="StrangerLeft" parent="Camera2D" instance=ExtResource( 1 )]
+position = Vector2( -541.781, -253.94 )
+
+[node name="StrangerMid" parent="Camera2D" instance=ExtResource( 1 )]
+position = Vector2( -153.336, -301.94 )
+
+[node name="StrangerRight" parent="Camera2D" instance=ExtResource( 1 )]
+position = Vector2( 230.38, -253.94 )
+
+[node name="Table" parent="Camera2D" instance=ExtResource( 2 )]
+position = Vector2( -98.2448, 2.18927 )
+
+[node name="PlayerHand" parent="Camera2D" instance=ExtResource( 2 )]
+position = Vector2( -512.956, 123.935 )
+
+[node name="TextBox" type="ColorRect" parent="Camera2D"]
+margin_left = -1197.48
+margin_top = 198.74
+margin_right = 1202.52
+margin_bottom = 798.74
+color = Color( 0.101961, 0.0862745, 0.0784314, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RichTextLabel" type="RichTextLabel" parent="Camera2D/TextBox"]
+margin_left = 618.74
 margin_top = 20.0
-margin_right = 1180.0
+margin_right = 1778.74
 margin_bottom = 180.0
 bbcode_enabled = true
 bbcode_text = "You've accused the [b]Boastful Stranger[/b] of being a [b]Brute[/b]!"
 text = "You've accused the Boastful Stranger of being a Brute!"
+__meta__ = {
+"_edit_use_anchors_": false
+}

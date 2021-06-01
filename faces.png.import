@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/2bit_faces.png-374f578791f23dfb73e4e6bc5d8e95fd.stex"
+path="res://.import/faces.png-f719e9426ccca97fa8ba1a5d14dd7d76.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://2bit_faces.png"
-dest_files=[ "res://.import/2bit_faces.png-374f578791f23dfb73e4e6bc5d8e95fd.stex" ]
+source_file="res://faces.png"
+dest_files=[ "res://.import/faces.png-f719e9426ccca97fa8ba1a5d14dd7d76.stex" ]
 
 [params]
 
