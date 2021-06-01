@@ -11,6 +11,7 @@ enum STATE {
 
 var state = STATE.PLAYER
 var has_passed = false
+var ai_has_passed = [false, false, false]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -55,30 +56,16 @@ func _input(ev):
 						if ownCard != null and tableCard != null:
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
-							disable_player_controls()
-							state = STATE.BOT_LEFT
+							advance_state()
 				STATE.BOT_LEFT:
-					# TODO use AI to determine which action to take
-					var ownCard = $StrangerLeft/Hand.cards[0]
-					var tableCard = $Table.cards[0]
-					$StrangerLeft/Hand.exchange_cards(ownCard, tableCard)
-					$Table.exchange_cards(tableCard, ownCard)
-					state = STATE.BOT_MID
+					enact_ai_action(0, $StrangerLeft/Hand)
+					advance_state()
 				STATE.BOT_MID:
-					# TODO use AI to determine which action to take
-					var ownCard = $StrangerMid/Hand.cards[1]
-					var tableCard = $Table.cards[1]
-					$StrangerMid/Hand.exchange_cards(ownCard, tableCard)
-					$Table.exchange_cards(tableCard, ownCard)
-					state = STATE.BOT_RIGHT
+					enact_ai_action(1, $StrangerMid/Hand)
+					advance_state()
 				STATE.BOT_RIGHT:
-					# TODO use AI to determine which action to take
-					var ownCard = $StrangerRight/Hand.cards[2]
-					var tableCard = $Table.cards[2]
-					$StrangerRight/Hand.exchange_cards(ownCard, tableCard)
-					$Table.exchange_cards(tableCard, ownCard)
-					enable_player_controls()
-					state = STATE.PLAYER
+					enact_ai_action(2, $StrangerRight/Hand)
+					advance_state()
 				STATE.END:
 					pass
 		else:
@@ -88,8 +75,7 @@ func _input(ev):
 						state = STATE.BOT_LEFT
 					elif $PassButton.pressed:
 						has_passed = true
-						disable_player_controls()
-						state = STATE.BOT_LEFT
+						advance_state()
 					elif $SwapButton.pressed:
 						for i in range(0, 3):
 							var ownCard = $PlayerHand.cards[i]
@@ -97,8 +83,7 @@ func _input(ev):
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
 						has_passed = true
-						disable_player_controls()
-						state = STATE.BOT_LEFT
+						advance_state()
 				STATE.BOT_LEFT:
 					pass
 				STATE.BOT_MID:
@@ -107,6 +92,33 @@ func _input(ev):
 					pass
 				STATE.END:
 					pass
+
+func advance_state():
+	if has_passed and ai_has_passed.min() == true:
+		disable_player_controls()
+		state = STATE.END
+		return
+	match state:
+		STATE.PLAYER:
+			disable_player_controls()
+			state = STATE.BOT_LEFT
+			if ai_has_passed[0]:
+				advance_state()
+		STATE.BOT_LEFT:
+			state = STATE.BOT_MID
+			if ai_has_passed[1]:
+				advance_state()
+		STATE.BOT_MID:
+			state = STATE.BOT_RIGHT
+			if ai_has_passed[2]:
+				advance_state()
+		STATE.BOT_RIGHT:
+			enable_player_controls()
+			state = STATE.PLAYER
+			if has_passed:
+				advance_state()
+		STATE.END:
+			pass
 
 func enable_player_controls():
 	if has_passed:
@@ -121,3 +133,23 @@ func disable_player_controls():
 	$Table.set_process_input(false)
 	$PassButton.visible = false
 	$SwapButton.visible = false
+
+func enact_ai_action(ai_index: int, hand: Hand):
+	# TODO use AI to determine which action to take
+	if ai_has_passed[ai_index]:
+		pass
+	elif (randi() % 100 < 20):
+		ai_has_passed[ai_index] = true
+	elif (randi() % 100 < 20):
+		for i in range(0, 3):
+			var ownCard = hand.cards[i]
+			var tableCard = $Table.cards[i]
+			hand.exchange_cards(ownCard, tableCard)
+			$Table.exchange_cards(tableCard, ownCard)
+			hand.reveal_cards()
+		ai_has_passed[ai_index] = true
+	else:
+		var ownCard = hand.cards[randi() % hand.cards.size()]
+		var tableCard = $Table.cards[randi() % $Table.cards.size()]
+		hand.exchange_cards(ownCard, tableCard)
+		$Table.exchange_cards(tableCard, ownCard)

@@ -1,5 +1,6 @@
 extends Node2D
 
+class_name Hand
 
 const CARD_BACK_FRAME = 53
 
