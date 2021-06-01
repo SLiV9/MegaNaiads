@@ -1,6 +1,16 @@
 extends Node2D
 
 
+enum STATE {
+	PLAYER,
+	BOT_LEFT,
+	BOT_MID,
+	BOT_RIGHT,
+	END
+}
+
+var state = STATE.PLAYER
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	randomize()
@@ -41,9 +51,42 @@ func _ready():
 func _input(ev):
 	if ev is InputEventMouseButton:
 		if ev.pressed:
-			var ownCard = $PlayerHand.get_raised_card()
-			var tableCard = $Table.get_raised_card()
-			if ownCard != null and tableCard != null:
-				$PlayerHand.exchange_cards(ownCard, tableCard)
-				$Table.exchange_cards(tableCard, ownCard)
-				$Table.set_process_input(false)
+			match state:
+				STATE.PLAYER:
+					var ownCard = $PlayerHand.get_raised_card()
+					var tableCard = $Table.get_raised_card()
+					if ownCard != null and tableCard != null:
+						$PlayerHand.exchange_cards(ownCard, tableCard)
+						$Table.exchange_cards(tableCard, ownCard)
+						$Table.set_process_input(false)
+						state = STATE.BOT_LEFT
+				STATE.BOT_LEFT:
+					if $PlayerHand.get_raised_card() != null:
+						pass
+					# TODO use AI to determine which action to take
+					var ownCard = $StrangerLeft/Hand.cards[0]
+					var tableCard = $Table.cards[0]
+					$StrangerLeft/Hand.exchange_cards(ownCard, tableCard)
+					$Table.exchange_cards(tableCard, ownCard)
+					state = STATE.BOT_MID
+				STATE.BOT_MID:
+					if $PlayerHand.get_raised_card() != null:
+						pass
+					# TODO use AI to determine which action to take
+					var ownCard = $StrangerMid/Hand.cards[1]
+					var tableCard = $Table.cards[1]
+					$StrangerMid/Hand.exchange_cards(ownCard, tableCard)
+					$Table.exchange_cards(tableCard, ownCard)
+					state = STATE.BOT_RIGHT
+				STATE.BOT_RIGHT:
+					if $PlayerHand.get_raised_card() != null:
+						pass
+					# TODO use AI to determine which action to take
+					var ownCard = $StrangerRight/Hand.cards[2]
+					var tableCard = $Table.cards[2]
+					$StrangerRight/Hand.exchange_cards(ownCard, tableCard)
+					$Table.exchange_cards(tableCard, ownCard)
+					$Table.set_process_input(true)
+					state = STATE.PLAYER
+				STATE.END:
+					pass
