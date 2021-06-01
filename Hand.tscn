@@ -5,7 +5,7 @@
 [node name="Hand" type="Node2D"]
 position = Vector2( 112, 32 )
 
-[node name="Card" type="Sprite" parent="."]
+[node name="Card1" type="Sprite" parent="."]
 position = Vector2( 32, 48 )
 scale = Vector2( 2, 2 )
 texture = ExtResource( 1 )

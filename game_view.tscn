@@ -1,8 +1,13 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Stranger.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Hand.tscn" type="PackedScene" id=2]
 [ext_resource path="res://texturina.tres" type="DynamicFont" id=3]
+[ext_resource path="res://StrangerLeft.gd" type="Script" id=4]
+[ext_resource path="res://StrangerMid.gd" type="Script" id=5]
+[ext_resource path="res://StrangerRight.gd" type="Script" id=6]
+[ext_resource path="res://Table.gd" type="Script" id=7]
+[ext_resource path="res://PlayerHand.gd" type="Script" id=8]
 
 [sub_resource type="Gradient" id=1]
 offsets = PoolRealArray( 0.0790068, 0.302483 )
@@ -28,18 +33,23 @@ position = Vector2( 600, 400 )
 
 [node name="StrangerLeft" parent="Camera2D" instance=ExtResource( 1 )]
 position = Vector2( -541.781, -253.94 )
+script = ExtResource( 4 )
 
 [node name="StrangerMid" parent="Camera2D" instance=ExtResource( 1 )]
 position = Vector2( -153.336, -301.94 )
+script = ExtResource( 5 )
 
 [node name="StrangerRight" parent="Camera2D" instance=ExtResource( 1 )]
 position = Vector2( 230.38, -253.94 )
+script = ExtResource( 6 )
 
 [node name="Table" parent="Camera2D" instance=ExtResource( 2 )]
 position = Vector2( -98.2448, 2.18927 )
+script = ExtResource( 7 )
 
 [node name="PlayerHand" parent="Camera2D" instance=ExtResource( 2 )]
 position = Vector2( -512.956, 123.935 )
+script = ExtResource( 8 )
 
 [node name="TextBox" type="ColorRect" parent="Camera2D"]
 margin_left = -1200.0
