@@ -17,9 +17,9 @@ func _ready():
 	$StrangerLeft/Face.set_frame(5)
 	$StrangerMid/Face.set_frame(4)
 	$StrangerRight/Face.set_frame(0)
-	$StrangerLeft/Emoticon.visible = false
-	$StrangerMid/Emoticon.visible = false
-	$StrangerRight/Emoticon.visible = false
+	$StrangerLeft/Emote.visible = false
+	$StrangerMid/Emote.visible = false
+	$StrangerRight/Emote.visible = false
 	var deck = range(0, 32)
 	deck.shuffle()
 	var i = 0

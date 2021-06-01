@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/emoticons.png-a4dd4a3fea4b4959b26a5bdb168cddce.stex"
+path="res://.import/emotes.png-a5e983fe96d60f0ea62b55338b9f0eac.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://emoticons.png"
-dest_files=[ "res://.import/emoticons.png-a4dd4a3fea4b4959b26a5bdb168cddce.stex" ]
+source_file="res://emotes.png"
+dest_files=[ "res://.import/emotes.png-a5e983fe96d60f0ea62b55338b9f0eac.stex" ]
 
 [params]
 
