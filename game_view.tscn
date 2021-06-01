@@ -1,7 +1,15 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Stranger.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Hand.tscn" type="PackedScene" id=2]
+[ext_resource path="res://texturina.tres" type="DynamicFont" id=3]
+
+[sub_resource type="Gradient" id=1]
+offsets = PoolRealArray( 0.0790068, 0.302483 )
+colors = PoolColorArray( 0.101961, 0.0862745, 0.0784314, 1, 0.0313726, 0.0313726, 0.0313726, 0 )
+
+[sub_resource type="GradientTexture" id=2]
+gradient = SubResource( 1 )
 
 [node name="Node2D" type="Node2D"]
 
@@ -34,23 +42,49 @@ position = Vector2( -98.2448, 2.18927 )
 position = Vector2( -512.956, 123.935 )
 
 [node name="TextBox" type="ColorRect" parent="Camera2D"]
-margin_left = -1197.48
-margin_top = 198.74
-margin_right = 1202.52
-margin_bottom = 798.74
+margin_left = -1200.0
+margin_top = 200.0
+margin_right = 1200.0
+margin_bottom = 800.0
 color = Color( 0.101961, 0.0862745, 0.0784314, 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="RichTextLabel" type="RichTextLabel" parent="Camera2D/TextBox"]
-margin_left = 618.74
+margin_left = 620.0
 margin_top = 20.0
-margin_right = 1778.74
+margin_right = 1780.0
 margin_bottom = 180.0
+grow_vertical = 0
+custom_fonts/bold_font = ExtResource( 3 )
+custom_fonts/normal_font = ExtResource( 3 )
+custom_colors/default_color = Color( 0.909804, 0.901961, 0.862745, 1 )
 bbcode_enabled = true
-bbcode_text = "You've accused the [b]Boastful Stranger[/b] of being a [b]Brute[/b]!"
-text = "You've accused the Boastful Stranger of being a Brute!"
+bbcode_text = "The [color=#dc8b58]Innkeeper[/color] takes the Eight of Clubs, discarding the Queen of Hearts.
+The [color=#8d659a]Boastful Stranger[/color] takes the Queen of Hearts, discarding the Ace of Diamonds.
+The [color=#8d659a]Boastful Stranger[/color] reveals 31.
+You have the worst hand.
+You've accused the [color=#8d659a]Boastful Stranger[/color] of being a [color=#dc8b58]Brute[/color]!
+[color=#8d659a]Boastful Stranger:[/color]  [color=#9c9887]Bah! And I would have gotten away with it too, if it wasn't for your meddling, Adventurer![/color]"
+text = "The Innkeeper takes the Eight of Clubs, discarding the Queen of Hearts.
+The Boastful Stranger takes the Queen of Hearts, discarding the Ace of Diamonds.
+The Boastful Stranger reveals 31.
+You have the worst hand.
+You've accused the Boastful Stranger of being a Brute!
+Boastful Stranger:  Bah! And I would have gotten away with it too, if it wasn't for your meddling, Adventurer!"
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextureRect" type="TextureRect" parent="Camera2D/TextBox"]
+margin_left = 2400.0
+margin_right = 2600.0
+margin_bottom = 2400.0
+rect_rotation = 90.0
+texture = SubResource( 2 )
+expand = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
