@@ -2,8 +2,6 @@ extends Node2D
 
 class_name Hand
 
-const CARD_BACK_FRAME = 53
-
 var cards = []
 var revealed = false
 
@@ -17,7 +15,7 @@ func hide_cards():
 	for i in range(0, 3):
 		if i < cards.size():
 			cardSprites[i].visible = true
-			cardSprites[i].set_frame(CARD_BACK_FRAME)
+			cardSprites[i].set_frame_to_back()
 		else:
 			cardSprites[i].visible = false
 
@@ -39,7 +37,7 @@ func deal_card(card):
 	if revealed:
 		cardSprites[i].set_frame(card)
 	else:
-		cardSprites[i].set_frame(CARD_BACK_FRAME)
+		cardSprites[i].set_frame_to_back()
 
 func discard_all_cards():
 	cards = []

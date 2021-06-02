@@ -13,9 +13,15 @@ _global_script_classes=[ {
 "class": "Hand",
 "language": "GDScript",
 "path": "res://hand.gd"
+}, {
+"base": "Node2D",
+"class": "Stranger",
+"language": "GDScript",
+"path": "res://stranger.gd"
 } ]
 _global_script_class_icons={
-"Hand": ""
+"Hand": "",
+"Stranger": ""
 }
 
 [application]

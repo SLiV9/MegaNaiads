@@ -12,13 +12,21 @@ enum STATE {
 var state = STATE.PLAYER
 var has_passed = false
 var ai_has_passed = [false, false, false]
+var unused_faces = []
+var unused_strategies = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	randomize()
-	$StrangerLeft/Face.set_frame(5)
-	$StrangerMid/Face.set_frame(4)
-	$StrangerRight/Face.set_frame(0)
+	$StrangerLeft.become_innkeeper()
+	$StrangerLeft.reveal_identity()
+	$StrangerMid.become_boss()
+	unused_faces = range(0, 10)
+	unused_strategies = range(0, 11)
+	unused_strategies.remove(unused_strategies.find($StrangerLeft.strategy))
+	unused_faces.shuffle()
+	unused_strategies.shuffle()
+	add_stranger($StrangerRight)
 	$StrangerLeft/Emote.visible = false
 	$StrangerMid/Emote.visible = false
 	$StrangerRight/Emote.visible = false
@@ -153,3 +161,10 @@ func enact_ai_action(ai_index: int, hand: Hand):
 		var tableCard = $Table.cards[randi() % $Table.cards.size()]
 		hand.exchange_cards(ownCard, tableCard)
 		$Table.exchange_cards(tableCard, ownCard)
+
+func add_stranger(stranger: Stranger):
+	var face = unused_faces[randi() % unused_faces.size()]
+	var strategy = unused_strategies[randi() % unused_strategies.size()]
+	stranger.become_stranger(face, strategy)
+	unused_faces.remove(unused_faces.find(face))
+	unused_strategies.remove(unused_strategies.find(strategy))
