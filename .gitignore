@@ -21,6 +21,6 @@ data_*/
 *.pdb
 
 # Except prebuild libraries
-!/bin/win64/libmeganaiads.dll
-!/bin/x11/libmeganaiads.so
-!/bin/osx/libmeganaiads.dylib
+!/bin/win64/*.dll
+!/bin/x11/*.so
+!/bin/osx/*.dylib

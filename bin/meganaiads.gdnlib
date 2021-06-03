@@ -7,12 +7,12 @@ reloadable=false
 
 [entry]
 
-X11.64="res://bin/x11/libmeganaiads.so"
-Windows.64="res://bin/win64/libmeganaiads.dll"
-OSX.64="res://bin/osx/libmeganaiads.dylib"
+OSX.64="res://bin/osx/libgdmeganaiads.dylib"
+Windows.64="res://bin/win64/libgdmeganaiads.dll"
+X11.64="res://bin/x11/libgdmeganaiads.so"
 
 [dependencies]
 
-X11.64=[  ]
-Windows.64=[  ]
-OSX.64=[  ]
+OSX.64=[ "res://bin/osx/libmeganaiads.dylib" ]
+Windows.64=[ "res://bin/win64/libmeganaiads.dll" ]
+X11.64=[ "res://bin/x11/libmeganaiads.so" ]
