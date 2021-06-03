@@ -9,6 +9,7 @@ const MAX_TURNS_PER_PLAYER = 11
 const NUMBER_COLOR = "#dc8b58"
 
 enum STATE {
+	START,
 	PLAYER,
 	BOT_LEFT,
 	BOT_MID,
@@ -16,7 +17,7 @@ enum STATE {
 	END
 }
 
-var state = STATE.PLAYER
+var state = STATE.START
 var turn = 0
 var has_passed = false
 var ai_has_passed = [false, false, false]
@@ -41,27 +42,13 @@ func _ready():
 	$StrangerLeft/Emote.visible = false
 	$StrangerMid/Emote.visible = false
 	$StrangerRight/Emote.visible = false
-	var deck = range(0, NUM_NORMAL_CARDS)
-	deck.shuffle()
-	var i = 0
-	$PlayerHand.reveal_cards()
-	$Table.reveal_cards()
-	$StrangerLeft/Hand.hide_cards()
-	$StrangerMid/Hand.hide_cards()
-	$StrangerRight/Hand.hide_cards()
-	for _t in range(0, 3):
-		$PlayerHand.deal_card(deck[i])
-		i += 1
-		$StrangerLeft/Hand.deal_card(deck[i])
-		i += 1
-		$StrangerMid/Hand.deal_card(deck[i])
-		i += 1
-		$StrangerRight/Hand.deal_card(deck[i])
-		i += 1
-		$Table.deal_card(deck[i])
-		i += 1
+	$PlayerHand.discard_all_cards()
+	$Table.discard_all_cards()
+	$StrangerLeft/Hand.discard_all_cards()
+	$StrangerMid/Hand.discard_all_cards()
+	$StrangerRight/Hand.discard_all_cards()
+	disable_player_controls()
 	set_process_input(true)
-	start_game()
 
 func _input(ev):
 	if ev is InputEventMouseButton:
@@ -91,6 +78,10 @@ func _input(ev):
 					advance_state()
 				STATE.END:
 					reveal_and_score()
+					state = STATE.START
+				STATE.START:
+					deal_cards()
+					start_playing()
 		else:
 			match state:
 				STATE.PLAYER:
@@ -135,10 +126,41 @@ func _input(ev):
 				STATE.END:
 					pass
 
-func start_game():
+func deal_cards():
+	$PlayerHand.discard_all_cards()
+	$Table.discard_all_cards()
+	$StrangerLeft/Hand.discard_all_cards()
+	$StrangerMid/Hand.discard_all_cards()
+	$StrangerRight/Hand.discard_all_cards()
+	var deck = range(0, NUM_NORMAL_CARDS)
+	deck.shuffle()
+	var i = 0
+	# TODO cheating with Prince, Forger, Artist, Swindler, Trickster
+	$PlayerHand.reveal_cards()
+	$Table.reveal_cards()
+	$StrangerLeft/Hand.hide_cards()
+	$StrangerMid/Hand.hide_cards()
+	$StrangerRight/Hand.hide_cards()
+	for _t in range(0, 3):
+		$PlayerHand.deal_card(deck[i])
+		i += 1
+		$StrangerLeft/Hand.deal_card(deck[i])
+		i += 1
+		$StrangerMid/Hand.deal_card(deck[i])
+		i += 1
+		$StrangerRight/Hand.deal_card(deck[i])
+		i += 1
+		$Table.deal_card(deck[i])
+		i += 1
+	# TODO cheating with Brute
+
+func start_playing():
 	var startingStates = [STATE.PLAYER, STATE.BOT_LEFT, STATE.BOT_MID,
 		STATE.BOT_RIGHT]
 	state = startingStates[randi() % startingStates.size()]
+	turn = 0
+	has_passed = false
+	ai_has_passed = [false, false, false]
 	disable_player_controls()
 	match state:
 		STATE.PLAYER:
@@ -181,7 +203,7 @@ func advance_state():
 			state = STATE.PLAYER
 			if has_passed:
 				advance_state()
-		STATE.END:
+		_:
 			pass
 
 func enable_player_controls():
