@@ -72,7 +72,7 @@ func _input(ev):
 						var ownCard = $PlayerHand.get_raised_card()
 						var tableCard = $Table.get_raised_card()
 						if ownCard != null and tableCard != null:
-							add_text_line("You take " + card_name(tableCard) +
+							add_text_line("You took " + card_name(tableCard) +
 								", discarding " + card_name(ownCard) + ".")
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
@@ -90,7 +90,7 @@ func _input(ev):
 					enact_ai_action(2, $StrangerRight)
 					advance_state()
 				STATE.END:
-					pass
+					reveal_and_score()
 		else:
 			match state:
 				STATE.PLAYER:
@@ -99,14 +99,14 @@ func _input(ev):
 					elif $PassButton.pressed:
 						has_passed = true
 						$PlayerHand.has_passed = true
-						add_text_line("You lock in " +
+						add_text_line("You locked in " +
 							"[color=" + NUMBER_COLOR + "]" +
 							str(evaluate_hand($PlayerHand)) +
 							"[/color]" +
 							".")
 						advance_state()
 					elif $SwapButton.pressed:
-						add_text_line("You take " +
+						add_text_line("You took " +
 							card_name($Table.cards[0]) + ", " +
 							card_name($Table.cards[1]) + " and " +
 							card_name($Table.cards[2]) + ", locking in " +
@@ -189,7 +189,9 @@ func enable_player_controls():
 		return
 	$PlayerHand.set_process_input(true)
 	$Table.set_process_input(true)
+	$PassButton.text = "LOCK IN (" + str(evaluate_hand($PlayerHand)) + ")"
 	$PassButton.visible = true
+	$SwapButton.text = "TAKE ALL (" + str(evaluate_hand($Table)) + ")"
 	$SwapButton.visible = true
 
 func disable_player_controls():
@@ -197,6 +199,29 @@ func disable_player_controls():
 	$Table.set_process_input(false)
 	$PassButton.visible = false
 	$SwapButton.visible = false
+
+func reveal_and_score():
+	var lowest_value = 30.0;
+	var player_value = evaluate_hand($PlayerHand)
+	var values = []
+	var bots = [$StrangerLeft, $StrangerMid, $StrangerRight]
+	for i in range(0, bots.size()):
+		var bot = bots[i]
+		var hand = bot.get_node("Hand")
+		var value = evaluate_hand(hand)
+		if hand.revealed:
+			add_text_line("The " + bot.get_name_bbcode() + " got " +
+				"[color=" + NUMBER_COLOR + "]" + str(value) + "[/color]" +
+				".")
+		else:
+			hand.reveal_cards()
+			add_text_line("The " + bot.get_name_bbcode() + " reveals " +
+				"[color=" + NUMBER_COLOR + "]" + str(value) + "[/color]" +
+				".")
+		values.push_back(value)
+	add_text_line("You got " +
+		"[color=" + NUMBER_COLOR + "]" + str(player_value) + "[/color]" +
+		".")
 
 func prepare_brain_input(input, ownHand: Hand, isSpy: bool,
 		leftHand: Hand, midHand: Hand, rightHand: Hand):
