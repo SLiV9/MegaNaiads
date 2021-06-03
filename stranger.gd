@@ -55,6 +55,7 @@ func become_stranger(i: int, s: int):
 	var name = ADJECTIVES[i] + ' Stranger'
 	$Name.bbcode_text = '[color=' + STRANGER_COLOR + ']' + name + '[/color]'
 	$Brain.load("brains/A_1_0_0.pth.tar")
+	#$Brain.load("brains/A_54675_54484_54307.pth.tar")
 
 func reveal_identity():
 	var name
@@ -64,8 +65,16 @@ func reveal_identity():
 		BOSS_FRAME:
 			name = 'Big Boss'
 		var i:
-			name = ADJECTIVES[i] + STRATEGY_NAMES[strategy]
+			name = ADJECTIVES[i] + ' ' + STRATEGY_NAMES[strategy]
 	$Name.bbcode_text = '[color=' + REVEALED_COLOR + ']' + name + '[/color]'
 
 func get_name_bbcode():
 	return $Name.bbcode_text
+
+func is_drunk():
+	return ($Face.frame < STRATEGY_NAMES.size() &&
+		STRATEGY_NAMES[$Face.frame] == 'Drunk')
+
+func is_spy():
+	return ($Face.frame < STRATEGY_NAMES.size() &&
+		STRATEGY_NAMES[$Face.frame] == 'Spy')
