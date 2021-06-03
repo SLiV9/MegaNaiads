@@ -11,4 +11,4 @@ Windows.64="res://bin/win64/gdmeganaiads.dll"
 
 [dependencies]
 
-Windows.64=[ "res://bin/win64/libmeganaiads.dll" ]
+Windows.64=[ "res://bin/win64/asmjit.dll", "res://bin/win64/c10.dll", "res://bin/win64/fbgemm.dll", "res://bin/win64/libiomp5md.dll", "res://bin/win64/libmeganaiads.dll", "res://bin/win64/torch_cpu.dll" ]
