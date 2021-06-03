@@ -4,6 +4,8 @@ class_name Hand
 
 var cards = []
 var revealed = false
+var has_passed = false
+var has_been_public = [false, false, false]
 
 
 func _ready():
@@ -44,12 +46,15 @@ func discard_all_cards():
 	var cardSprites = [$Card1, $Card2, $Card3]
 	for i in range(0, 3):
 		cardSprites[i].visible = false
+		has_been_public[i] = false
+	has_passed = false
 
 func exchange_cards(oldCard, newCard):
 	var cardSprites = [$Card1, $Card2, $Card3]
 	for i in range(0, cards.size()):
 		if cards[i] == oldCard:
 			cards[i] = newCard
+			has_been_public[i] = true
 			if cardSprites[i].get_frame() == oldCard:
 				cardSprites[i].set_frame(newCard)
 			cardSprites[i].position.y = 48

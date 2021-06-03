@@ -4,6 +4,8 @@ extends Node2D
 const NUM_NORMAL_CARDS = 32
 const NUM_CARDS = 36
 
+const MAX_TURNS_PER_PLAYER = 11
+
 const NUMBER_COLOR = "#dc8b58"
 
 enum STATE {
@@ -15,6 +17,7 @@ enum STATE {
 }
 
 var state = STATE.PLAYER
+var turn = 0
 var has_passed = false
 var ai_has_passed = [false, false, false]
 var unused_faces = []
@@ -73,6 +76,9 @@ func _input(ev):
 								", discarding " + card_name(ownCard) + ".")
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
+							if ai_has_passed.min() == true:
+								has_passed = true
+								$PlayerHand.has_passed = true
 							advance_state()
 				STATE.BOT_LEFT:
 					enact_ai_action(0, $StrangerLeft)
@@ -92,6 +98,7 @@ func _input(ev):
 						state = STATE.BOT_LEFT
 					elif $PassButton.pressed:
 						has_passed = true
+						$PlayerHand.has_passed = true
 						add_text_line("You lock in " +
 							"[color=" + NUMBER_COLOR + "]" +
 							str(evaluate_hand($PlayerHand)) +
@@ -117,6 +124,7 @@ func _input(ev):
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
 						has_passed = true
+						$PlayerHand.has_passed = true
 						advance_state()
 				STATE.BOT_LEFT:
 					pass
@@ -156,6 +164,7 @@ func advance_state():
 	match state:
 		STATE.PLAYER:
 			disable_player_controls()
+			turn += 1
 			state = STATE.BOT_LEFT
 			if ai_has_passed[0]:
 				advance_state()
@@ -201,25 +210,25 @@ func prepare_brain_input(input, ownHand: Hand, isSpy: bool,
 		input[3 * NUM_CARDS + midHand.cards[i]] = 1
 		input[4 * NUM_CARDS + rightHand.cards[i]] = 1
 		input[5 * NUM_CARDS + ownHand.cards[i]] = 1
-		# TODO visiblity
-		input[6 * NUM_CARDS + leftHand.cards[i]] = 0
-		input[7 * NUM_CARDS + midHand.cards[i]] = 0
-		input[8 * NUM_CARDS + rightHand.cards[i]] = 0
+		input[6 * NUM_CARDS + leftHand.cards[i]] = (isSpy or
+			leftHand.has_been_public[i])
+		input[7 * NUM_CARDS + midHand.cards[i]] = (isSpy or
+			midHand.has_been_public[i])
+		input[8 * NUM_CARDS + rightHand.cards[i]] = (isSpy or
+			rightHand.has_been_public[i])
 	input[9 * NUM_CARDS + 0] = 1
-	# TODO do these players exist?
+	# TODO change this for the boss battle
 	input[9 * NUM_CARDS + 1] = 1
 	input[9 * NUM_CARDS + 2] = 1
 	input[9 * NUM_CARDS + 3] = 1
-	# TODO who has passed?
 	input[9 * NUM_CARDS + 4] = 0
-	input[9 * NUM_CARDS + 5] = 0
-	input[9 * NUM_CARDS + 6] = 0
-	input[9 * NUM_CARDS + 7] = 0
-	# TODO who is the player?
-	input[9 * NUM_CARDS + 8] = 0
-	input[9 * NUM_CARDS + 9] = 0
-	input[9 * NUM_CARDS + 10] = 0
-	input[9 * NUM_CARDS + 11] = 0
+	input[9 * NUM_CARDS + 5] = leftHand.has_passed
+	input[9 * NUM_CARDS + 6] = midHand.has_passed
+	input[9 * NUM_CARDS + 7] = rightHand.has_passed
+	input[9 * NUM_CARDS + 8] = ownHand == $PlayerHand
+	input[9 * NUM_CARDS + 9] = leftHand == $PlayerHand
+	input[9 * NUM_CARDS + 10] = midHand == $PlayerHand
+	input[9 * NUM_CARDS + 11] = rightHand == $PlayerHand
 
 func enact_ai_action(ai_index: int, stranger: Stranger):
 	var hand = stranger.get_node("Hand")
@@ -232,14 +241,18 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 		brain.ownCard = hand.cards[randi() % hand.cards.size()]
 		brain.tableCard = $Table.cards[randi() % $Table.cards.size()]
 	else:
-		# TODO determine hands
+		var allHands = [$StrangerLeft/Hand, $StrangerMid/Hand,
+			$StrangerRight/Hand, $PlayerHand]
 		prepare_brain_input(brain.input, hand, stranger.is_spy(),
-			$StrangerLeft/Hand, $StrangerMid/Hand, $StrangerRight/Hand)
+			allHands[(ai_index + 1) % 4],
+			allHands[(ai_index + 2) % 4],
+			allHands[(ai_index + 3) % 4])
 		brain.evaluate()
-	if brain.wantsToPass:
+	if brain.wantsToPass or turn >= MAX_TURNS_PER_PLAYER:
 		add_text_line("The " + stranger.get_name_bbcode() +
 			" locks in their hand.")
 		ai_has_passed[ai_index] = true
+		hand.has_passed = true
 	elif brain.wantsToSwap:
 		add_text_line("The " + stranger.get_name_bbcode() + " takes " +
 			card_name($Table.cards[0]) + ", " +
@@ -260,6 +273,7 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 			$Table.exchange_cards(tableCard, ownCard)
 			hand.reveal_cards()
 		ai_has_passed[ai_index] = true
+		hand.has_passed = true
 	else:
 		var ownCard = brain.ownCard
 		var tableCard = brain.tableCard
@@ -267,6 +281,10 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 			card_name(tableCard) + ", discarding " + card_name(ownCard) + ".")
 		hand.exchange_cards(ownCard, tableCard)
 		$Table.exchange_cards(tableCard, ownCard)
+		if (has_passed and ai_has_passed[(ai_index + 1) % 3] and
+				ai_has_passed[(ai_index + 2) % 3]):
+			ai_has_passed[ai_index] = true
+			hand.has_passed = true
 
 func add_stranger(stranger: Stranger):
 	var face = unused_faces[randi() % unused_faces.size()]
