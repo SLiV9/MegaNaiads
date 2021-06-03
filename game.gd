@@ -1,6 +1,8 @@
 extends Node2D
 
 
+const NUMBER_COLOR = "#dc8b58"
+
 enum STATE {
 	PLAYER,
 	BOT_LEFT,
@@ -14,6 +16,7 @@ var has_passed = false
 var ai_has_passed = [false, false, false]
 var unused_faces = []
 var unused_strategies = []
+var text_lines = ["", "", "", "", "", ""]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -50,8 +53,7 @@ func _ready():
 		$Table.deal_card(deck[i])
 		i += 1
 	set_process_input(true)
-	$PlayerHand.set_process_input(true)
-	$Table.set_process_input(true)
+	start_game()
 
 func _input(ev):
 	if ev is InputEventMouseButton:
@@ -62,17 +64,19 @@ func _input(ev):
 						var ownCard = $PlayerHand.get_raised_card()
 						var tableCard = $Table.get_raised_card()
 						if ownCard != null and tableCard != null:
+							add_text_line("You take " + card_name(tableCard) +
+								", discarding " + card_name(ownCard) + ".")
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
 							advance_state()
 				STATE.BOT_LEFT:
-					enact_ai_action(0, $StrangerLeft/Hand)
+					enact_ai_action(0, $StrangerLeft)
 					advance_state()
 				STATE.BOT_MID:
-					enact_ai_action(1, $StrangerMid/Hand)
+					enact_ai_action(1, $StrangerMid)
 					advance_state()
 				STATE.BOT_RIGHT:
-					enact_ai_action(2, $StrangerRight/Hand)
+					enact_ai_action(2, $StrangerRight)
 					advance_state()
 				STATE.END:
 					pass
@@ -83,8 +87,25 @@ func _input(ev):
 						state = STATE.BOT_LEFT
 					elif $PassButton.pressed:
 						has_passed = true
+						add_text_line("You lock in " +
+							"[color=" + NUMBER_COLOR + "]" +
+							str(evaluate_hand($PlayerHand)) +
+							"[/color]" +
+							".")
 						advance_state()
 					elif $SwapButton.pressed:
+						add_text_line("You take " +
+							card_name($Table.cards[0]) + ", " +
+							card_name($Table.cards[1]) + " and " +
+							card_name($Table.cards[2]) + ", locking in " +
+							"[color=" + NUMBER_COLOR + "]" +
+							str(evaluate_hand($Table)) +
+							"[/color]" +
+							".")
+						add_text_line("You discarded " +
+							card_name($PlayerHand.cards[0]) + ", " +
+							card_name($PlayerHand.cards[1]) + " and " +
+							card_name($PlayerHand.cards[2]) + ".")
 						for i in range(0, 3):
 							var ownCard = $PlayerHand.cards[i]
 							var tableCard = $Table.cards[i]
@@ -100,6 +121,27 @@ func _input(ev):
 					pass
 				STATE.END:
 					pass
+
+func start_game():
+	var startingStates = [STATE.PLAYER, STATE.BOT_LEFT, STATE.BOT_MID,
+		STATE.BOT_RIGHT]
+	state = startingStates[randi() % startingStates.size()]
+	disable_player_controls()
+	match state:
+		STATE.PLAYER:
+			enable_player_controls()
+			add_text_line("You start this round.")
+		STATE.BOT_LEFT:
+			var name = $StrangerLeft.get_name_bbcode()
+			add_text_line("The " + name +  " starts this round.")
+		STATE.BOT_MID:
+			var name = $StrangerMid.get_name_bbcode()
+			add_text_line("The " + name +  " starts this round.")
+		STATE.BOT_RIGHT:
+			var name = $StrangerRight.get_name_bbcode()
+			add_text_line("The " + name +  " starts this round.")
+		STATE.END:
+			pass
 
 func advance_state():
 	if has_passed and ai_has_passed.min() == true:
@@ -142,13 +184,28 @@ func disable_player_controls():
 	$PassButton.visible = false
 	$SwapButton.visible = false
 
-func enact_ai_action(ai_index: int, hand: Hand):
+func enact_ai_action(ai_index: int, stranger: Stranger):
 	# TODO use AI to determine which action to take
+	var hand = stranger.get_node("Hand")
 	if ai_has_passed[ai_index]:
 		pass
 	elif (randi() % 100 < 20):
+		add_text_line("The " + stranger.get_name_bbcode() +
+			" locks in their hand.")
 		ai_has_passed[ai_index] = true
 	elif (randi() % 100 < 20):
+		add_text_line("The " + stranger.get_name_bbcode() + " takes " +
+			card_name($Table.cards[0]) + ", " +
+			card_name($Table.cards[1]) + " and " +
+			card_name($Table.cards[2]) + ", locking in " +
+			"[color=" + NUMBER_COLOR + "]" +
+			str(evaluate_hand($Table)) +
+			"[/color]" +
+			".")
+		add_text_line("The " + stranger.get_name_bbcode() + " discarded " +
+			card_name(hand.cards[0]) + ", " +
+			card_name(hand.cards[1]) + " and " +
+			card_name(hand.cards[2]) + ".")
 		for i in range(0, 3):
 			var ownCard = hand.cards[i]
 			var tableCard = $Table.cards[i]
@@ -159,6 +216,8 @@ func enact_ai_action(ai_index: int, hand: Hand):
 	else:
 		var ownCard = hand.cards[randi() % hand.cards.size()]
 		var tableCard = $Table.cards[randi() % $Table.cards.size()]
+		add_text_line("The " + stranger.get_name_bbcode() + " takes " +
+			card_name(tableCard) + ", discarding " + card_name(ownCard) + ".")
 		hand.exchange_cards(ownCard, tableCard)
 		$Table.exchange_cards(tableCard, ownCard)
 
@@ -168,3 +227,29 @@ func add_stranger(stranger: Stranger):
 	stranger.become_stranger(face, strategy)
 	unused_faces.remove(unused_faces.find(face))
 	unused_strategies.remove(unused_strategies.find(strategy))
+
+func add_text_line(line):
+	text_lines.pop_front()
+	text_lines.push_back(line)
+	var bbcode_text = text_lines[0]
+	for i in range(1, text_lines.size()):
+		bbcode_text += "\n" + text_lines[i]
+	$TextBox/Content.bbcode_text = bbcode_text
+
+func card_name(card: int):
+	var suit = card % 4
+	var face = card / 4
+	var FACE_NAMES = ["Seven", "Eight", "Nine", "Ten",
+		"Jack", "Queen", "King", "Ace"]
+	var SUIT_NAMES = ["Clubs", "Diamonds", "Hearts", "Spades"]
+	if face < 8:
+		return "the " + FACE_NAMES[face] + " of " + SUIT_NAMES[suit]
+	else:
+		match card:
+			0: return "an Ace of Clubs"
+			1: return "a Joker"
+			2: return "a Twelve of Hearts"
+			3: return "an Ace of Spades"
+
+func evaluate_hand(hand: Hand):
+	return 30.5

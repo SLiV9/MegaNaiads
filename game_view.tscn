@@ -54,7 +54,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="RichTextLabel" type="RichTextLabel" parent="Camera2D/TextBox"]
+[node name="Content" type="RichTextLabel" parent="Camera2D/TextBox"]
 margin_left = 620.0
 margin_top = 20.0
 margin_right = 1780.0

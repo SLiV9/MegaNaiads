@@ -30,6 +30,10 @@ config/name="MegaNaiads"
 run/main_scene="res://game_view.tscn"
 config/icon="res://icon.png"
 
+[debug]
+
+gdscript/warnings/integer_division=false
+
 [display]
 
 window/size/width=1200
