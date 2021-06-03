@@ -11,4 +11,4 @@ Windows.64="res://bin/win64/gdmeganaiads.dll"
 
 [dependencies]
 
-Windows.64=[  ]
+Windows.64=[ "res://bin/win64/libmeganaiads.dll" ]

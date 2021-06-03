@@ -54,6 +54,7 @@ func become_stranger(i: int, s: int):
 	strategy = s
 	var name = ADJECTIVES[i] + ' Stranger'
 	$Name.bbcode_text = '[color=' + STRANGER_COLOR + ']' + name + '[/color]'
+	$Brain.load("brains/A_54675_54484_54307.pth.tar")
 
 func reveal_identity():
 	var name
