@@ -135,24 +135,73 @@ func deal_cards():
 	var deck = range(0, NUM_NORMAL_CARDS)
 	deck.shuffle()
 	var i = 0
-	# TODO cheating with Prince, Forger, Artist, Swindler, Trickster
 	$PlayerHand.reveal_cards()
 	$Table.reveal_cards()
 	$StrangerLeft/Hand.hide_cards()
 	$StrangerMid/Hand.hide_cards()
 	$StrangerRight/Hand.hide_cards()
-	for _t in range(0, 3):
+	var bots = [$StrangerLeft, $StrangerMid, $StrangerRight]
+	var trickeries = range(0, 3)
+	trickeries.shuffle()
+	for t in range(0, 3):
 		$PlayerHand.deal_card(deck[i])
 		i += 1
-		$StrangerLeft/Hand.deal_card(deck[i])
-		i += 1
-		$StrangerMid/Hand.deal_card(deck[i])
-		i += 1
-		$StrangerRight/Hand.deal_card(deck[i])
-		i += 1
+		for bot in bots:
+			match bot.strategy:
+				Stranger.STRATEGY.PRINCE:
+					var trickj = null
+					for j in range(i, deck.size()):
+						var face = deck[j] / 4
+						if ((t == trickeries[0] and face == 5)
+								or (t == trickeries[1] and face == 6)):
+							trickj = j
+							break
+					if trickj != null and trickj > i:
+						var tmp = deck[i]
+						deck[i] = deck[trickj]
+						deck[trickj] = tmp
+				Stranger.STRATEGY.FORGER:
+					if t == trickeries[0]:
+						deck[i] = NUM_NORMAL_CARDS + 3 * (randi() % 2)
+				Stranger.STRATEGY.TRICKSTER:
+					if t == trickeries[0]:
+						deck[i] = NUM_NORMAL_CARDS + 1
+				Stranger.STRATEGY.ARTIST:
+					if t == trickeries[0]:
+						deck[i] = NUM_NORMAL_CARDS + 2
+				Stranger.STRATEGY.SWINDLER:
+					if (deck[i] / 4) == 0:
+						var trickj = null
+						for j in range(i + 1, deck.size()):
+							if deck[j] / 4 == 3:
+								trickj = j
+								break
+						if trickj != null and trickj > i:
+							var tmp = deck[i]
+							deck[i] = deck[trickj]
+							deck[trickj] = tmp
+				_: pass
+			bot.get_node("Hand").deal_card(deck[i])
+			i += 1
 		$Table.deal_card(deck[i])
 		i += 1
-	# TODO cheating with Brute
+	for u in range(0, bots.size()):
+		var bot: Stranger = bots[u]
+		if bot.strategy == Stranger.STRATEGY.BRUTE:
+			var bruteHand: Hand = bot.get_node("Hand")
+			var bruteValue = evaluate_hand(bruteHand)
+			var others = range(0, bots.size())
+			others.remove(others.find(u))
+			others.shuffle()
+			for v in others:
+				var otherHand: Hand = bots[v].get_node("Hand")
+				if evaluate_hand(otherHand) > bruteValue:
+					for t in range(0, 3):
+						var ownCard = bruteHand.cards[t]
+						var otherCard = otherHand.cards[t]
+						bruteHand.exchange_cards(ownCard, otherCard)
+						otherHand.exchange_cards(otherCard, ownCard)
+					break
 
 func start_playing():
 	var startingStates = [STATE.PLAYER, STATE.BOT_LEFT, STATE.BOT_MID,
@@ -285,7 +334,7 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 	if ai_has_passed[ai_index]:
 		return
 	var brain = stranger.get_node("Brain")
-	if stranger.strategy == stranger.STRATEGY.DRUNK:
+	if stranger.strategy == Stranger.STRATEGY.DRUNK:
 		brain.wantsToPass = (randi() % 100 < 20)
 		brain.wantsToSwap = (randi() % 100 < 10)
 		brain.ownCard = hand.cards[randi() % hand.cards.size()]
@@ -294,7 +343,7 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 		var allHands = [$StrangerLeft/Hand, $StrangerMid/Hand,
 			$StrangerRight/Hand, $PlayerHand]
 		prepare_brain_input(brain.input, hand,
-			stranger.strategy == stranger.STRATEGY.SPY,
+			stranger.strategy == Stranger.STRATEGY.SPY,
 			allHands[(ai_index + 1) % 4],
 			allHands[(ai_index + 2) % 4],
 			allHands[(ai_index + 3) % 4])
