@@ -9,6 +9,8 @@ export_presets.cfg
 data_*/
 
 # Build output
+/export/*.exe
+/export/*.pck
 *.obj
 *.o
 *.so
