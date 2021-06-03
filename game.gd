@@ -228,14 +228,17 @@ func reveal_and_score():
 	var values = []
 	var bots = [$StrangerLeft, $StrangerMid, $StrangerRight]
 	for i in range(0, bots.size()):
-		var bot = bots[i]
-		var hand = bot.get_node("Hand")
+		var bot: Stranger = bots[i]
+		var hand: Hand = bot.get_node("Hand")
 		var value = evaluate_hand(hand)
 		if hand.revealed:
 			add_text_line("The " + bot.get_name_bbcode() + " got " +
 				"[color=" + NUMBER_COLOR + "]" + str(value) + "[/color]" +
 				".")
 		else:
+			if bot.strategy == bot.STRATEGY.ILLUSIONIST and value <= 30.0:
+				perform_illusion(hand)
+				value = evaluate_hand(hand)
 			hand.reveal_cards()
 			add_text_line("The " + bot.get_name_bbcode() + " reveals " +
 				"[color=" + NUMBER_COLOR + "]" + str(value) + "[/color]" +
@@ -282,7 +285,7 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 	if ai_has_passed[ai_index]:
 		return
 	var brain = stranger.get_node("Brain")
-	if stranger.is_drunk():
+	if stranger.strategy == stranger.STRATEGY.DRUNK:
 		brain.wantsToPass = (randi() % 100 < 20)
 		brain.wantsToSwap = (randi() % 100 < 10)
 		brain.ownCard = hand.cards[randi() % hand.cards.size()]
@@ -290,7 +293,8 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 	else:
 		var allHands = [$StrangerLeft/Hand, $StrangerMid/Hand,
 			$StrangerRight/Hand, $PlayerHand]
-		prepare_brain_input(brain.input, hand, stranger.is_spy(),
+		prepare_brain_input(brain.input, hand,
+			stranger.strategy == stranger.STRATEGY.SPY,
 			allHands[(ai_index + 1) % 4],
 			allHands[(ai_index + 2) % 4],
 			allHands[(ai_index + 3) % 4])
@@ -336,7 +340,8 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 func add_stranger(stranger: Stranger):
 	var face = unused_faces[randi() % unused_faces.size()]
 	var strategy = unused_strategies[randi() % unused_strategies.size()]
-	stranger.become_stranger(face, strategy)
+	stranger.strategy = strategy
+	stranger.become_stranger(face)
 	unused_faces.remove(unused_faces.find(face))
 	unused_strategies.remove(unused_strategies.find(strategy))
 
@@ -363,6 +368,38 @@ func card_name(card: int):
 			2: return "a Twelve of Hearts"
 			3: return "an Ace of Spades"
 			_: return "card #" + str(card)
+
+func perform_illusion(hand: Hand):
+	var valueOfHearts = 0
+	var valueOfSpades = 0
+	var diamondFace = null
+	var clubFace = null
+	var FACE_VALUES = [7, 8, 9, 10, 10, 10, 10, 11]
+	for i in range(0, 3):
+		var card = hand.cards[i]
+		var suit = card % 4
+		var face = card / 4
+		if face < FACE_VALUES.size():
+			var face_value = FACE_VALUES[face]
+			match suit:
+				0: clubFace = face
+				1: diamondFace = face
+				2: valueOfHearts += face_value
+				3: valueOfSpades += face_value
+		else:
+			match (card - NUM_NORMAL_CARDS):
+				2: valueOfHearts += 12
+				_: pass
+	if valueOfHearts >= 14 and diamondFace != null:
+		if diamondFace < FACE_VALUES.size() - 1:
+			var oldCard = diamondFace * 4 + 1
+			var newCard = diamondFace * 4 + 2
+			hand.exchange_cards(oldCard, newCard)
+	elif valueOfSpades >= 14 and clubFace != null:
+		if clubFace < FACE_VALUES.size() - 1:
+			var oldCard = clubFace * 4 + 0
+			var newCard = clubFace * 4 + 3
+			hand.exchange_cards(oldCard, newCard)
 
 func evaluate_hand(hand: Hand):
 	return $Game.evaluate_hand(hand.cards[0], hand.cards[1], hand.cards[2])
