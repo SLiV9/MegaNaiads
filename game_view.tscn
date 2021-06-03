@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://Stranger.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Hand.tscn" type="PackedScene" id=2]
 [ext_resource path="res://texturina.tres" type="DynamicFont" id=3]
 [ext_resource path="res://TextButton.tscn" type="PackedScene" id=4]
+[ext_resource path="res://bin/game.gdns" type="Script" id=5]
 [ext_resource path="res://game.gd" type="Script" id=9]
 
 [sub_resource type="Gradient" id=1]
@@ -103,3 +104,6 @@ margin_top = 150.0
 margin_right = 80.8683
 margin_bottom = 191.0
 text = "TAKE ALL (10)"
+
+[node name="Game" type="Node" parent="Camera2D"]
+script = ExtResource( 5 )
