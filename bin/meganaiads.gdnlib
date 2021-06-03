@@ -3,16 +3,12 @@
 singleton=false
 load_once=true
 symbol_prefix="godot_"
-reloadable=false
+reloadable=true
 
 [entry]
 
-OSX.64="res://bin/osx/libgdmeganaiads.dylib"
-Windows.64="res://bin/win64/libgdmeganaiads.dll"
-X11.64="res://bin/x11/libgdmeganaiads.so"
+Windows.64="res://bin/win64/gdmeganaiads.dll"
 
 [dependencies]
 
-OSX.64=[ "res://bin/osx/libmeganaiads.dylib" ]
-Windows.64=[ "res://bin/win64/libmeganaiads.dll" ]
-X11.64=[ "res://bin/x11/libmeganaiads.so" ]
+Windows.64=[  ]

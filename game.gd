@@ -252,4 +252,4 @@ func card_name(card: int):
 			3: return "an Ace of Spades"
 
 func evaluate_hand(hand: Hand):
-	return 30.5
+	return $Game.evaluate_hand(hand.cards[0], hand.cards[1], hand.cards[2])
