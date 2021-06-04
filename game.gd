@@ -45,6 +45,8 @@ var unused_strategies = []
 var text_lines = ["", "", "", "", "", ""]
 var player_lives = 3
 var current_accusation = null
+var boss_battle = false
+var boss_revealed = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -53,8 +55,6 @@ func _ready():
 	unused_faces = range(0, 10)
 	unused_strategies = range(0, 11)
 	unused_strategies.remove(unused_strategies.find($StrangerLeft.strategy))
-	unused_faces.shuffle()
-	unused_strategies.shuffle()
 	$StrangerLeft.visible = false
 	$StrangerMid.visible = false
 	$StrangerRight.visible = false
@@ -242,10 +242,17 @@ func _input(ev):
 								" leaves the table.")
 							defeats += 1
 					if defeats > unused_strategies.size():
-						add_text_line("You win!")
-						# TODO more satisfying ending with boss battle
-						state = STATE.GAME_OVER
-						return
+						if not boss_battle:
+							boss_battle = true
+							for bot in [$StrangerLeft, $StrangerMid,
+									$StrangerRight]:
+								if not bot.defeated:
+									bot.strategy = Stranger.STRATEGY.GOON
+									bot.load_brain()
+							unused_strategies = [Stranger.STRATEGY.BOSS]
+							for _i in range(1, defeats):
+								unused_strategies.push_back(
+									Stranger.STRATEGY.GOON)
 					state = STATE.ADD_FRESH_BLOOD
 				STATE.ADD_FRESH_BLOOD:
 					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
@@ -253,10 +260,10 @@ func _input(ev):
 							if unused_strategies.size() > 0:
 								add_stranger(bot)
 							else:
-								add_text_line("You win!")
-								# TODO more satisfying ending with boss battle
-								state = STATE.GAME_OVER
-								return
+								unused_strategies = [Stranger.STRATEGY.GOON]
+								add_stranger(bot)
+							if boss_revealed:
+								bot.reveal_identity()
 					state = STATE.START
 				STATE.GAME_OVER:
 					pass
@@ -298,7 +305,7 @@ func _input(ev):
 						$PlayerHand.has_passed = true
 						add_text_line("You locked in " +
 							"[color=" + NUMBER_COLOR + "]" +
-							str(evaluate_hand($PlayerHand)) +
+							stringify_value(evaluate_hand($PlayerHand)) +
 							"[/color]" +
 							".")
 						advance_state()
@@ -308,7 +315,7 @@ func _input(ev):
 							card_name($Table.cards[1]) + " and " +
 							card_name($Table.cards[2]) + ", locking in " +
 							"[color=" + NUMBER_COLOR + "]" +
-							str(evaluate_hand($Table)) +
+							stringify_value(evaluate_hand($Table)) +
 							"[/color]" +
 							".")
 						add_text_line("You discarded " +
@@ -343,9 +350,10 @@ func _input(ev):
 							for stranger in [$StrangerLeft, $StrangerMid,
 									$StrangerRight]:
 								if not stranger.revealed:
-									accusations.push_back(
-										Stranger.get_accusation_card(
-											stranger.strategy))
+									var card = Stranger.get_accusation_card(
+											stranger.strategy)
+									if card != null:
+										accusations.push_back(card)
 							for i in range(0, 3):
 								if i < unused_strategies.size():
 									accusations.push_back(
@@ -374,6 +382,8 @@ func _input(ev):
 							if x == Stranger.get_accusation_card(
 									accused.strategy):
 								accused.reveal_identity()
+								if accused.strategy == Stranger.STRATEGY.BOSS:
+									boss_revealed = true
 								var reveal_quote = accused.get_reveal_quote()
 								if reveal_quote:
 									add_text_line(reveal_quote)
@@ -400,14 +410,20 @@ func _input(ev):
 									if player_lives > 0:
 										add_text_line("You have " +
 											str(player_lives) + " lives left.")
-										state = STATE.ACCUSATIONS
 									else:
 										add_text_line("Game over.")
 										disable_player_controls()
 										state = STATE.GAME_OVER
 										return
 						disable_player_controls()
-						state = STATE.ACCUSATIONS
+						if boss_revealed:
+							for bot in [$StrangerLeft, $StrangerMid,
+									$StrangerRight]:
+								if not bot.revealed:
+									bot.reveal_identity()
+							state = STATE.START
+						else:
+							state = STATE.ACCUSATIONS
 					elif $DoNotAccuseButton.pressed:
 						$PlayerHand.discard_all_cards()
 						disable_player_controls()
@@ -604,9 +620,11 @@ func enable_player_controls():
 		return
 	$PlayerHand.set_process_input(true)
 	$Table.set_process_input(true)
-	$PassButton.text = "LOCK IN (" + str(evaluate_hand($PlayerHand)) + ")"
+	$PassButton.text = ("LOCK IN (" +
+		stringify_value(evaluate_hand($PlayerHand)) + ")")
 	$PassButton.visible = true
-	$SwapButton.text = "TAKE ALL (" + str(evaluate_hand($Table)) + ")"
+	$SwapButton.text = ("TAKE ALL (" +
+		stringify_value(evaluate_hand($Table)) + ")")
 	$SwapButton.visible = true
 
 func disable_player_controls():
@@ -667,6 +685,16 @@ func reveal_and_score():
 			var bot = bots[i]
 			if bot.revealed and values[i] == lowest_value:
 				bot.defeated = true
+				if bot.strategy == Stranger.STRATEGY.BOSS:
+					var defeat_quote = bot.get_defeat_quote()
+					if defeat_quote != null:
+						add_text_line(defeat_quote)
+					add_text_line("You beam with pride in your victory." +
+						" But when you hear the scraping of chairs" +
+						" and the drawing of swords," +
+						" you wonder how long that feeling will last...")
+					state = STATE.GAME_OVER
+					return
 				defeats += 1
 		if defeats > 0:
 			state = STATE.CULL_DEFEATED
@@ -742,7 +770,7 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 			card_name($Table.cards[1]) + " and " +
 			card_name($Table.cards[2]) + ", locking in " +
 			"[color=" + NUMBER_COLOR + "]" +
-			str(evaluate_hand($Table)) +
+			stringify_value(evaluate_hand($Table)) +
 			"[/color]" +
 			".")
 		add_text_line("The " + stranger.get_name_bbcode() + " discarded " +
@@ -770,11 +798,16 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 			hand.has_passed = true
 
 func add_stranger(stranger: Stranger):
+	if unused_faces.size() == 0:
+		unused_faces = range(0, 10)
 	var face = unused_faces[randi() % unused_faces.size()]
 	var strategy = unused_strategies[randi() % unused_strategies.size()]
 	stranger.strategy = strategy
+	if strategy == Stranger.STRATEGY.BOSS:
+		face = Stranger.BOSS_FRAME
 	stranger.become_stranger(face)
-	unused_faces.remove(unused_faces.find(face))
+	if face != Stranger.BOSS_FRAME:
+		unused_faces.remove(unused_faces.find(face))
 	unused_strategies.remove(unused_strategies.find(strategy))
 	add_text_line(stranger.get_introduction_name_bbcode() +
 		" sits down at your table.")

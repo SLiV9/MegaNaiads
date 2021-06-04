@@ -37,8 +37,10 @@ const STRATEGY_NAMES = [
 	'Prince',
 	'Brute',
 	'Spy',
+	'Goon',
+	'Boss',
 ]
-const STRATEGY_CARDS = [33, 56, 58, 62, 64, 60, 67, 63, 57, 59, 66]
+const STRATEGY_CARDS = [33, 56, 58, 62, 64, 60, 67, 63, 57, 59, 66, null, 65]
 enum STRATEGY {
 	TRICKSTER,
 	ARTIST,
@@ -51,6 +53,8 @@ enum STRATEGY {
 	PRINCE,
 	BRUTE,
 	SPY,
+	GOON,
+	BOSS,
 }
 
 var revealed = false
@@ -71,24 +75,31 @@ func become_stranger(i: int):
 	$Face.frame = i
 	var name = ADJECTIVES[i] + ' Stranger'
 	$Name.bbcode_text = '[color=' + STRANGER_COLOR + ']' + name + '[/color]'
+	load_brain()
+
+func load_brain():
 	match strategy:
 		STRATEGY.ARTIST:
-			$Brain.load("brains/artist_72740_72385_0_cpu.pth.tar")
+			$Brain.load("brains/artist_67153_66997_0_cpu.pth.tar")
 		STRATEGY.FOOL:
-			$Brain.load("brains/fool_72734_72178_72542_cpu.pth.tar")
+			$Brain.load("brains/fool_67142_66973_0_cpu.pth.tar")
 		STRATEGY.FORGER:
-			$Brain.load("brains/forger_72775_72591_72405_cpu.pth.tar")
+			$Brain.load("brains/forger_67184_67014_0_cpu.pth.tar")
 		STRATEGY.ILLUSIONIST:
-			$Brain.load("brains/illusionist_72785_72603_72609_cpu.pth.tar")
+			$Brain.load("brains/illusionist_67040_66871_66864_cpu.pth.tar")
 		STRATEGY.SPY:
-			$Brain.load("brains/spy_72799_72615_72610_cpu.pth.tar")
+			$Brain.load("brains/spy_67209_64869_0_cpu.pth.tar")
 		STRATEGY.TRICKSTER:
-			$Brain.load("brains/trickster_72756_72568_72213_cpu.pth.tar")
+			$Brain.load("brains/trickster_67177_67006_67005_cpu.pth.tar")
+		STRATEGY.GOON:
+			$Brain.load("brains/goon_67230_67068_66226_cpu.pth.tar")
+		STRATEGY.BOSS:
+			$Brain.load("brains/boss_66733_66568_0_cpu.pth.tar")
 		_: match (randi() % 4):
-			0: $Brain.load("brains/A_72324_72140_71770_cpu.pth.tar")
-			1: $Brain.load("brains/B_72706_72515_72521_cpu.pth.tar")
-			2: $Brain.load("brains/C_72716_72537_72351_cpu.pth.tar")
-			3: $Brain.load("brains/X_72852_71769_0_cpu.pth.tar")
+			0: $Brain.load("brains/A_66942_66768_66763_cpu.pth.tar")
+			1: $Brain.load("brains/B_67121_66784_66943_cpu.pth.tar")
+			2: $Brain.load("brains/C_66970_66796_66293_cpu.pth.tar")
+			3: $Brain.load("brains/X_67259_66916_67083_cpu.pth.tar")
 
 func reveal_identity():
 	revealed = true
@@ -151,7 +162,7 @@ func get_reveal_quote():
 		'Welcoming': quote = ("Right you are!" +
 			" I'm also the owner of this fine establishment." +
 			" Now see if you can beat me!")
-		'Monstrous': quote = "WAAAH!"
+		'Monstrous': quote = "What?! Don't you know who I am?"
 		'Affable': quote = "Ha, you've caught me."
 		'Boastful': quote = ("And I would have gotten away with it," +
 			" if it wasn't for your meddling...")
@@ -196,7 +207,7 @@ func get_defeat_quote():
 	var quote = null
 	match ADJECTIVES[$Face.frame]:
 		'Welcoming': quote = "Well, time for me to get back to work!"
-		'Monstrous': quote = "What... wait... WHAT?!"
+		'Monstrous': quote = "I'll have your head for this!"
 		'Affable': quote = "Well played!"
 		'Boastful': quote = "Hmpf. I'll get you next time!"
 		'Ominous': quote = "Why you little... I'll get you for this!"
@@ -244,6 +255,10 @@ static func get_accusation_bbcode(x: int):
 			return "a [color=" + REVEALED_COLOR + "]Brute[/color]"
 		STRATEGY.SPY:
 			return "a [color=" + REVEALED_COLOR + "]Spy[/color]"
+		STRATEGY.GOON:
+			return "a [color=" + REVEALED_COLOR + "]Goon[/color]"
+		STRATEGY.BOSS:
+			return "a [color=" + REVEALED_COLOR + "]Sore Loser[/color]"
 
 static func get_strategy_bbcode(x: int):
 	match get_strategy_from_accusation_card(x):
@@ -281,5 +296,8 @@ static func get_strategy_bbcode(x: int):
 		STRATEGY.SPY:
 			return ("The [color=" + REVEALED_COLOR + "]Spy[/color]" +
 				" can see everyone's cards at all times.")
+		STRATEGY.BOSS:
+			return ("The [color=" + REVEALED_COLOR + "]Boss[/color]" +
+				" forces everyone else to let them win.")
 		_:
 			return "Who knows?"
