@@ -1,5 +1,5 @@
-# MegaNaiads
-Godot project for AI &amp; Games Jam. ("MegaNaiads" is an anagram of "AI and Games".)
+# Cheater's Inn
+Godot project for AI &amp; Games Jam.
 
 ## License
 This game was made by Sander in 't Veld. Its source code is made available to you under the MIT License, as specified in *LICENSE.txt*.
