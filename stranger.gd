@@ -105,6 +105,15 @@ func reveal_identity():
 func get_name_bbcode():
 	return $Name.bbcode_text
 
+func get_name_semicolon_bbcode():
+	return get_name_and_semicolon_bbcode()
+
+func get_name_and_semicolon_bbcode():
+	if revealed:
+		return (get_name_bbcode() + '[color=' + REVEALED_COLOR + ']:[/color]')
+	else:
+		return (get_name_bbcode() + '[color=' + STRANGER_COLOR + ']:[/color]')
+
 func get_introduction_name_bbcode():
 	var adjective = ADJECTIVES[$Face.frame]
 	var text = "A"
@@ -132,7 +141,8 @@ func get_win_quote():
 		'Glum': quote = "I guess I got lucky."
 	if quote == null:
 		return null
-	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+	return (get_name_and_semicolon_bbcode() +
+		" [color=" + QUOTE_COLOR + "]" +
 		quote + "[/color]")
 
 func get_reveal_quote():
@@ -155,7 +165,8 @@ func get_reveal_quote():
 		'Glum': quote = "Am I that obvious?"
 	if quote == null:
 		return null
-	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+	return (get_name_and_semicolon_bbcode() +
+		" [color=" + QUOTE_COLOR + "]" +
 		quote + "[/color]")
 
 func get_reject_quote():
@@ -177,7 +188,8 @@ func get_reject_quote():
 		quote += " I am an honerable Knight!"
 	if quote == null:
 		return null
-	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+	return (get_name_and_semicolon_bbcode() +
+		" [color=" + QUOTE_COLOR + "]" +
 		quote + "[/color]")
 
 func get_defeat_quote():
@@ -198,7 +210,8 @@ func get_defeat_quote():
 		'Glum': quote = "Another day, another disappointment."
 	if quote == null:
 		return null
-	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+	return (get_name_and_semicolon_bbcode() +
+		" [color=" + QUOTE_COLOR + "]" +
 		quote + "[/color]")
 
 static func get_accusation_card(s: int):

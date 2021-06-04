@@ -11,6 +11,17 @@ const MAX_TURNS_AFTER_PLAYER = 2
 const NUMBER_COLOR = "#dc8b58"
 
 enum STATE {
+	INTRO1,
+	INTRO2,
+	ASK_TUTORIAL,
+	TUTORIAL1,
+	TUTORIAL2,
+	TUTORIAL3,
+	TUTORIAL4,
+	TUTORIAL5,
+	TUTORIAL6,
+	TUTORIAL7,
+	TUTORIAL8,
 	START,
 	PLAYER,
 	BOT_LEFT,
@@ -24,7 +35,8 @@ enum STATE {
 	GAME_OVER
 }
 
-var state = STATE.START
+
+var state = STATE.INTRO1
 var turn = 0
 var player_pass_turn = -1
 var ai_has_passed = [false, false, false]
@@ -43,12 +55,26 @@ func _ready():
 	unused_strategies.remove(unused_strategies.find($StrangerLeft.strategy))
 	unused_faces.shuffle()
 	unused_strategies.shuffle()
-	add_stranger($StrangerMid)
-	add_stranger($StrangerRight)
+	$StrangerLeft.visible = false
+	$StrangerMid.visible = false
+	$StrangerRight.visible = false
 	$StrangerLeft/Emote.visible = false
 	$StrangerMid/Emote.visible = false
 	$StrangerRight/Emote.visible = false
 	clear_table()
+	match (randi() % 4):
+		0: add_text_line("The sound of crackling fire" +
+			" greets you as you enter the Inn." +
+			" You find an empty table near the back.")
+		1: add_text_line("The sound of drunken merriment" +
+			" greets you as you enter the Inn." +
+			" You find an empty table near the back.")
+		2: add_text_line("The sound of hushed voices" +
+			" greets you as you enter the Inn." +
+			" You find an empty table near the back.")
+		3: add_text_line("The sound of laughter and games" +
+			" greets you as you enter the Inn." +
+			" You find an empty table near the back.")
 	disable_player_controls()
 	set_process_input(true)
 
@@ -56,6 +82,104 @@ func _input(ev):
 	if ev is InputEventMouseButton:
 		if ev.pressed:
 			match state:
+				STATE.INTRO1:
+					$StrangerLeft.visible = true
+					add_text_line("Someone spots you from across the room," +
+						" flashes you a big grin and then approaches. The " +
+						$StrangerLeft.get_name_bbcode() +
+						" takes a seat at your table.")
+					state = STATE.INTRO2
+				STATE.INTRO2:
+					add_text_line("The " +
+						$StrangerLeft.get_name_bbcode() +
+						" produces a deck of cards and start shuffling.")
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"Do you know how to play?" + "[/color]")
+					$AccuseButton.text = "YES"
+					$AccuseButton.visible = true
+					$DoNotAccuseButton.text = "NO, TEACH ME"
+					$DoNotAccuseButton.visible = true
+					state = STATE.ASK_TUTORIAL
+				STATE.TUTORIAL1:
+					add_stranger($StrangerMid)
+					add_stranger($StrangerRight)
+					$StrangerMid.visible = true
+					$StrangerRight.visible = true
+					deal_cards()
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"Each of us gets three cards, and there's three cards" +
+						" on the table." +
+						"[/color]")
+					state = STATE.TUTORIAL2
+				STATE.TUTORIAL2:
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"On your turn, you can take a card from the table" +
+						" in exchange for one from your hand." +
+						" Try to collect cards of the same suit." +
+						"[/color]")
+					state = STATE.TUTORIAL3
+				STATE.TUTORIAL3:
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"Aces are worth" +
+						" [color=" + NUMBER_COLOR + "]" +
+						stringify_value(11) + "[/color] points." +
+						" Jacks, Queens and Kings are worth" +
+						" [color=" + NUMBER_COLOR + "]" +
+						stringify_value(10) + "[/color]." +
+						" Seven through Ten..." +
+						" well I'm sure you can figure those out." +
+						"[/color]")
+					state = STATE.TUTORIAL4
+				STATE.TUTORIAL4:
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"If someone gets to" +
+						" [color=" + NUMBER_COLOR + "]" +
+						stringify_value(31) + "[/color]" +
+						", they win the round." +
+						" Otherwise the game continues until everyone" +
+						" is satisfied with their hand and locks in." +
+						"[/color]")
+					state = STATE.TUTORIAL5
+				STATE.TUTORIAL5:
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"At the end of the round," +
+						" the player with the worst hand has to pay up." +
+						"[/color]")
+					state = STATE.TUTORIAL6
+				STATE.TUTORIAL6:
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"Oh, if you collect three of a kind," +
+						" say three Sevens or three Queens," +
+						" that's " +
+						" [color=" + NUMBER_COLOR + "]" +
+						stringify_value(30.5) + "[/color]" +
+						"!" +
+						" Not enough to end the game," +
+						" but worth looking out for." +
+						"[/color]")
+					state = STATE.TUTORIAL7
+				STATE.TUTORIAL7:
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"One last thing:" +
+						" if the cards on the table look especially appealing," +
+						" you can take the lot!" +
+						" But you won't be able to change cards afterwards." +
+						"[/color]")
+					state = STATE.TUTORIAL8
+				STATE.TUTORIAL8:
+					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+						" [color=" + Stranger.QUOTE_COLOR + "]" +
+						"That's it!" +
+						"[/color]")
+					start_playing()
 				STATE.PLAYER:
 					if player_pass_turn < 0:
 						var ownCard = $PlayerHand.get_raised_card()
@@ -138,6 +262,34 @@ func _input(ev):
 					pass
 		else:
 			match state:
+				STATE.ASK_TUTORIAL:
+					if $AccuseButton.pressed:
+						add_text_line("You nod." +
+							" From behind you, you hear people approaching.")
+						add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+							" [color=" + Stranger.QUOTE_COLOR + "]" +
+							"Excellent!" + "[/color]")
+						$AccuseButton.text = "ACCUSE"
+						$DoNotAccuseButton.text = "DO NOT ACCUSE"
+						add_stranger($StrangerMid)
+						add_stranger($StrangerRight)
+						$StrangerMid.visible = true
+						$StrangerRight.visible = true
+						disable_player_controls()
+						state = STATE.START
+					elif $DoNotAccuseButton.pressed:
+						add_text_line("Before you can speak, the " +
+							$StrangerLeft.get_name_bbcode() +
+							" sees the confused look on your face and laughs.")
+						add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
+							" [color=" + Stranger.QUOTE_COLOR + "]" +
+							"Don't worry, the rules are simple. It's your" +
+							" fellow players that you should worry about." +
+							"[/color]")
+						$AccuseButton.text = "ACCUSE"
+						$DoNotAccuseButton.text = "DO NOT ACCUSE"
+						disable_player_controls()
+						state = STATE.TUTORIAL1
 				STATE.PLAYER:
 					if player_pass_turn >= 0:
 						state = STATE.BOT_LEFT
@@ -376,7 +528,7 @@ func advance_state():
 			if value >= 31.0:
 				add_text_line("You reveal " +
 					"[color=" + NUMBER_COLOR + "]" +
-					str(value) + "[/color]" +
+					stringify_value(value) + "[/color]" +
 					"!")
 				disable_player_controls()
 				state = STATE.END
@@ -392,7 +544,7 @@ func advance_state():
 				add_text_line("The " + $StrangerLeft.get_name_bbcode() +
 					" reveals " +
 					"[color=" + NUMBER_COLOR + "]" +
-					str(value) + "[/color]" +
+					stringify_value(value) + "[/color]" +
 					"!")
 				$StrangerLeft/Hand.reveal_cards()
 				var win_quote = $StrangerLeft.get_win_quote()
@@ -409,7 +561,7 @@ func advance_state():
 				add_text_line("The " + $StrangerMid.get_name_bbcode() +
 					" reveals " +
 					"[color=" + NUMBER_COLOR + "]" +
-					str(value) + "[/color]" +
+					stringify_value(value) + "[/color]" +
 					"!")
 				$StrangerMid/Hand.reveal_cards()
 				var win_quote = $StrangerMid.get_win_quote()
@@ -426,7 +578,7 @@ func advance_state():
 				add_text_line("The " + $StrangerRight.get_name_bbcode() +
 					" reveals " +
 					"[color=" + NUMBER_COLOR + "]" +
-					str(value) + "[/color]" +
+					stringify_value(value) + "[/color]" +
 					"!")
 				$StrangerRight/Hand.reveal_cards()
 				var win_quote = $StrangerRight.get_win_quote()
@@ -440,6 +592,12 @@ func advance_state():
 				advance_state()
 		_:
 			pass
+
+func stringify_value(value):
+	if value == 30.5:
+		return "30 ½"
+	else:
+		return str(value)
 
 func enable_player_controls():
 	if player_pass_turn >= 0:
@@ -472,7 +630,8 @@ func reveal_and_score():
 		var value = evaluate_hand(hand)
 		if hand.revealed:
 			add_text_line("The " + bot.get_name_bbcode() + " got " +
-				"[color=" + NUMBER_COLOR + "]" + str(value) + "[/color]" +
+				"[color=" + NUMBER_COLOR + "]" +
+				stringify_value(value) + "[/color]" +
 				".")
 		else:
 			if bot.strategy == bot.STRATEGY.ILLUSIONIST and value <= 30.0:
@@ -480,11 +639,13 @@ func reveal_and_score():
 				value = evaluate_hand(hand)
 			hand.reveal_cards()
 			add_text_line("The " + bot.get_name_bbcode() + " reveals " +
-				"[color=" + NUMBER_COLOR + "]" + str(value) + "[/color]" +
+				"[color=" + NUMBER_COLOR + "]" +
+				stringify_value(value) + "[/color]" +
 				".")
 		values.push_back(value)
 	add_text_line("You got " +
-		"[color=" + NUMBER_COLOR + "]" + str(player_value) + "[/color]" +
+		"[color=" + NUMBER_COLOR + "]" +
+		stringify_value(player_value) + "[/color]" +
 		".")
 	values.push_back(player_value)
 	var lowest_value = values.min()
