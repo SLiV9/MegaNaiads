@@ -86,7 +86,7 @@ func load_brain():
 		STRATEGY.FORGER:
 			$Brain.load("brains/forger_67184_67014_0_cpu.pth.tar")
 		STRATEGY.ILLUSIONIST:
-			$Brain.load("brains/illusionist_67040_66871_66864_cpu.pth.tar")
+			$Brain.load("brains/illusionist_319206_319034_319036_cpu.pth.tar")
 		STRATEGY.SPY:
 			$Brain.load("brains/spy_67209_64869_0_cpu.pth.tar")
 		STRATEGY.TRICKSTER:
@@ -96,9 +96,9 @@ func load_brain():
 		STRATEGY.BOSS:
 			$Brain.load("brains/boss_66733_66568_0_cpu.pth.tar")
 		_: match (randi() % 4):
-			0: $Brain.load("brains/A_66942_66768_66763_cpu.pth.tar")
-			1: $Brain.load("brains/B_67121_66784_66943_cpu.pth.tar")
-			2: $Brain.load("brains/C_66970_66796_66293_cpu.pth.tar")
+			0: $Brain.load("brains/A_319108_318934_318936_cpu.pth.tar")
+			1: $Brain.load("brains/B_319122_318944_318945_cpu.pth.tar")
+			2: $Brain.load("brains/C_319130_318963_318961_cpu.pth.tar")
 			3: $Brain.load("brains/X_67259_66916_67083_cpu.pth.tar")
 
 func reveal_identity():
