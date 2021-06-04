@@ -7,7 +7,7 @@
 position = Vector2( 32, 48 )
 scale = Vector2( 2, 2 )
 texture = ExtResource( 1 )
-vframes = 8
+vframes = 9
 hframes = 8
 frame = 24
 script = ExtResource( 2 )

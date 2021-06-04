@@ -105,5 +105,26 @@ margin_right = 80.8683
 margin_bottom = 191.0
 text = "TAKE ALL (10)"
 
+[node name="NoAccusationsButton" parent="Camera2D" instance=ExtResource( 4 )]
+margin_left = 375.06
+margin_top = 150.0
+margin_right = 576.06
+margin_bottom = 191.0
+text = "NO ACCUSATIONS"
+
+[node name="AccuseButton" parent="Camera2D" instance=ExtResource( 4 )]
+margin_left = -53.0
+margin_top = 150.0
+margin_right = 81.0
+margin_bottom = 191.0
+text = "ACCUSE"
+
+[node name="DoNotAccuseButton" parent="Camera2D" instance=ExtResource( 4 )]
+margin_left = 100.0
+margin_top = 150.0
+margin_right = 250.0
+margin_bottom = 191.0
+text = "DO NOT ACCUSE"
+
 [node name="Game" type="Node" parent="Camera2D"]
 script = ExtResource( 5 )

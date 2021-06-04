@@ -14,3 +14,12 @@ position = Vector2( 104, 48 )
 
 [node name="Card3" parent="." instance=ExtResource( 1 )]
 position = Vector2( 176, 48 )
+
+[node name="Card4" parent="." instance=ExtResource( 1 )]
+position = Vector2( 248, 48 )
+
+[node name="Card5" parent="." instance=ExtResource( 1 )]
+position = Vector2( 320, 48 )
+
+[node name="Card6" parent="." instance=ExtResource( 1 )]
+position = Vector2( 392, 48 )

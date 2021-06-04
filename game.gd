@@ -14,7 +14,10 @@ enum STATE {
 	BOT_LEFT,
 	BOT_MID,
 	BOT_RIGHT,
-	END
+	END,
+	ACCUSATIONS,
+	ACCUSE,
+	GAME_OVER
 }
 
 var state = STATE.START
@@ -24,6 +27,8 @@ var ai_has_passed = [false, false, false]
 var unused_faces = []
 var unused_strategies = []
 var text_lines = ["", "", "", "", "", ""]
+var player_lives = 3
+var current_accusation = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -36,17 +41,11 @@ func _ready():
 	unused_faces.shuffle()
 	unused_strategies.shuffle()
 	add_stranger($StrangerMid)
-	$StrangerMid.reveal_identity()
 	add_stranger($StrangerRight)
-	$StrangerRight.reveal_identity()
 	$StrangerLeft/Emote.visible = false
 	$StrangerMid/Emote.visible = false
 	$StrangerRight/Emote.visible = false
-	$PlayerHand.discard_all_cards()
-	$Table.discard_all_cards()
-	$StrangerLeft/Hand.discard_all_cards()
-	$StrangerMid/Hand.discard_all_cards()
-	$StrangerRight/Hand.discard_all_cards()
+	clear_table()
 	disable_player_controls()
 	set_process_input(true)
 
@@ -78,10 +77,35 @@ func _input(ev):
 					advance_state()
 				STATE.END:
 					reveal_and_score()
-					state = STATE.START
 				STATE.START:
 					deal_cards()
 					start_playing()
+				STATE.ACCUSATIONS:
+					if not $NoAccusationsButton.visible:
+						clear_table()
+						$NoAccusationsButton.visible = true
+						for stranger in [$StrangerLeft, $StrangerMid,
+								$StrangerRight]:
+							stranger.accused = false
+							if not stranger.revealed:
+								stranger.get_node(
+									"AccusationButton").visible = true
+						add_text_line("Do you want to accuse anyone?")
+				STATE.ACCUSE:
+					var accused = null
+					for bot in [$StrangerLeft, $StrangerMid,
+							$StrangerRight]:
+						if bot.accused == true:
+							accused = bot
+					var x = $PlayerHand.get_raised_card()
+					if accused != null and x != null:
+						if $AccuseButton.visible == false:
+							$AccuseButton.visible = true
+							$DoNotAccuseButton.visible = true
+						current_accusation = x
+						replace_text_line(Stranger.get_strategy_bbcode(x))
+				STATE.GAME_OVER:
+					pass
 		else:
 			match state:
 				STATE.PLAYER:
@@ -117,21 +141,73 @@ func _input(ev):
 						has_passed = true
 						$PlayerHand.has_passed = true
 						advance_state()
-				STATE.BOT_LEFT:
-					pass
-				STATE.BOT_MID:
-					pass
-				STATE.BOT_RIGHT:
-					pass
-				STATE.END:
+				STATE.ACCUSATIONS:
+					if $NoAccusationsButton.pressed:
+						if current_accusation != null:
+							replace_text_line("You did not accuse anyone else.")
+						else:
+							replace_text_line("You did not accuse anyone.")
+						current_accusation = null
+						disable_player_controls()
+						state = STATE.START
+						return
+					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
+						var button = bot.get_node("AccusationButton")
+						if button.visible && button.pressed:
+							bot.accused = true
+							state = STATE.ACCUSE
+							$PlayerHand.discard_all_cards()
+							var accusations = []
+							for stranger in [$StrangerLeft, $StrangerMid,
+									$StrangerRight]:
+								if not stranger.revealed:
+									accusations.push_back(
+										Stranger.get_accusation_card(
+											stranger.strategy))
+							for i in range(0, 3):
+								if i < unused_strategies.size():
+									accusations.push_back(
+										Stranger.get_accusation_card(
+											unused_strategies[i]))
+							accusations.shuffle()
+							current_accusation = null
+							for accusation in accusations:
+								$PlayerHand.deal_card(accusation)
+							disable_player_controls()
+							$PlayerHand.set_process_input(true)
+							break
+				STATE.ACCUSE:
+					if $AccuseButton.pressed:
+						var accused = null
+						for bot in [$StrangerLeft, $StrangerMid,
+								$StrangerRight]:
+							if bot.accused == true:
+								accused = bot
+						var x = current_accusation
+						$PlayerHand.discard_all_cards()
+						if accused != null and x != null:
+							replace_text_line("You've accused the " +
+								accused.get_name_bbcode() + " of being " +
+								Stranger.get_accusation_bbcode(x) + "!")
+							# TODO reveal if true
+						disable_player_controls()
+						state = STATE.ACCUSATIONS
+					elif $DoNotAccuseButton.pressed:
+						$PlayerHand.discard_all_cards()
+						disable_player_controls()
+						state = STATE.ACCUSATIONS
+				_:
 					pass
 
-func deal_cards():
+func clear_table():
 	$PlayerHand.discard_all_cards()
 	$Table.discard_all_cards()
 	$StrangerLeft/Hand.discard_all_cards()
 	$StrangerMid/Hand.discard_all_cards()
 	$StrangerRight/Hand.discard_all_cards()
+
+func deal_cards():
+	clear_table()
 	var deck = range(0, NUM_NORMAL_CARDS)
 	deck.shuffle()
 	var i = 0
@@ -224,8 +300,6 @@ func start_playing():
 		STATE.BOT_RIGHT:
 			var name = $StrangerRight.get_name_bbcode()
 			add_text_line("The " + name +  " starts this round.")
-		STATE.END:
-			pass
 
 func advance_state():
 	if has_passed and ai_has_passed.min() == true:
@@ -270,9 +344,13 @@ func disable_player_controls():
 	$Table.set_process_input(false)
 	$PassButton.visible = false
 	$SwapButton.visible = false
+	$NoAccusationsButton.visible = false
+	$AccuseButton.visible = false
+	$DoNotAccuseButton.visible = false
+	for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
+		bot.get_node("AccusationButton").visible = false
 
 func reveal_and_score():
-	var lowest_value = 30.0;
 	var player_value = evaluate_hand($PlayerHand)
 	var values = []
 	var bots = [$StrangerLeft, $StrangerMid, $StrangerRight]
@@ -296,6 +374,22 @@ func reveal_and_score():
 	add_text_line("You got " +
 		"[color=" + NUMBER_COLOR + "]" + str(player_value) + "[/color]" +
 		".")
+	values.push_back(player_value)
+	var lowest_value = values.min()
+	if lowest_value > 30.0:
+		add_text_line("It's a tie!")
+		state = STATE.START
+	elif player_value == lowest_value:
+		player_lives -= 1
+		if player_lives > 0:
+			add_text_line("You have " + str(player_lives) + " lives left.")
+			state = STATE.ACCUSATIONS
+		else:
+			add_text_line("Game over.")
+			state = STATE.GAME_OVER
+	else:
+		# TODO kick out revealed losers
+		state = STATE.START
 
 func prepare_brain_input(input, ownHand: Hand, isSpy: bool,
 		leftHand: Hand, midHand: Hand, rightHand: Hand):
@@ -396,6 +490,14 @@ func add_stranger(stranger: Stranger):
 
 func add_text_line(line):
 	text_lines.pop_front()
+	text_lines.push_back(line)
+	var bbcode_text = text_lines[0]
+	for i in range(1, text_lines.size()):
+		bbcode_text += "\n" + text_lines[i]
+	$TextBox/Content.bbcode_text = bbcode_text
+
+func replace_text_line(line):
+	text_lines.pop_back()
 	text_lines.push_back(line)
 	var bbcode_text = text_lines[0]
 	for i in range(1, text_lines.size()):
