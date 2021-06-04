@@ -4,7 +4,9 @@ extends Node2D
 const NUM_NORMAL_CARDS = 32
 const NUM_CARDS = 36
 
-const MAX_TURNS_PER_PLAYER = 11
+const MAX_TURNS_PER_PLAYER = 9
+const MIN_TURNS_PER_PLAYER = 5
+const MAX_TURNS_AFTER_PLAYER = 2
 
 const NUMBER_COLOR = "#dc8b58"
 
@@ -24,7 +26,7 @@ enum STATE {
 
 var state = STATE.START
 var turn = 0
-var has_passed = false
+var player_pass_turn = -1
 var ai_has_passed = [false, false, false]
 var unused_faces = []
 var unused_strategies = []
@@ -55,7 +57,7 @@ func _input(ev):
 		if ev.pressed:
 			match state:
 				STATE.PLAYER:
-					if not has_passed:
+					if player_pass_turn < 0:
 						var ownCard = $PlayerHand.get_raised_card()
 						var tableCard = $Table.get_raised_card()
 						if ownCard != null and tableCard != null:
@@ -64,7 +66,7 @@ func _input(ev):
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
 							if ai_has_passed.min() == true:
-								has_passed = true
+								player_pass_turn = turn
 								$PlayerHand.has_passed = true
 							advance_state()
 				STATE.BOT_LEFT:
@@ -137,10 +139,10 @@ func _input(ev):
 		else:
 			match state:
 				STATE.PLAYER:
-					if has_passed:
+					if player_pass_turn >= 0:
 						state = STATE.BOT_LEFT
 					elif $PassButton.pressed:
-						has_passed = true
+						player_pass_turn = turn
 						$PlayerHand.has_passed = true
 						add_text_line("You locked in " +
 							"[color=" + NUMBER_COLOR + "]" +
@@ -166,7 +168,7 @@ func _input(ev):
 							var tableCard = $Table.cards[i]
 							$PlayerHand.exchange_cards(ownCard, tableCard)
 							$Table.exchange_cards(tableCard, ownCard)
-						has_passed = true
+						player_pass_turn = turn
 						$PlayerHand.has_passed = true
 						advance_state()
 				STATE.ACCUSATIONS:
@@ -346,7 +348,7 @@ func start_playing():
 		STATE.BOT_RIGHT]
 	state = startingStates[randi() % startingStates.size()]
 	turn = 0
-	has_passed = false
+	player_pass_turn = -1
 	ai_has_passed = [false, false, false]
 	disable_player_controls()
 	match state:
@@ -364,35 +366,83 @@ func start_playing():
 			add_text_line("The " + name +  " starts this round.")
 
 func advance_state():
-	if has_passed and ai_has_passed.min() == true:
+	if player_pass_turn >= 0 and ai_has_passed.min() == true:
 		disable_player_controls()
 		state = STATE.END
 		return
 	match state:
 		STATE.PLAYER:
+			var value = evaluate_hand($PlayerHand)
+			if value >= 31.0:
+				add_text_line("You reveal " +
+					"[color=" + NUMBER_COLOR + "]" +
+					str(value) + "[/color]" +
+					"!")
+				disable_player_controls()
+				state = STATE.END
+				return
 			disable_player_controls()
 			turn += 1
 			state = STATE.BOT_LEFT
 			if ai_has_passed[0]:
 				advance_state()
 		STATE.BOT_LEFT:
+			var value = evaluate_hand($StrangerLeft/Hand)
+			if value >= 31.0:
+				add_text_line("The " + $StrangerLeft.get_name_bbcode() +
+					" reveals " +
+					"[color=" + NUMBER_COLOR + "]" +
+					str(value) + "[/color]" +
+					"!")
+				$StrangerLeft/Hand.reveal_cards()
+				var win_quote = $StrangerLeft.get_win_quote()
+				if win_quote:
+					add_text_line(win_quote)
+				state = STATE.END
+				return
 			state = STATE.BOT_MID
 			if ai_has_passed[1]:
 				advance_state()
 		STATE.BOT_MID:
+			var value = evaluate_hand($StrangerMid/Hand)
+			if value >= 31.0:
+				add_text_line("The " + $StrangerMid.get_name_bbcode() +
+					" reveals " +
+					"[color=" + NUMBER_COLOR + "]" +
+					str(value) + "[/color]" +
+					"!")
+				$StrangerMid/Hand.reveal_cards()
+				var win_quote = $StrangerMid.get_win_quote()
+				if win_quote:
+					add_text_line(win_quote)
+				state = STATE.END
+				return
 			state = STATE.BOT_RIGHT
 			if ai_has_passed[2]:
 				advance_state()
 		STATE.BOT_RIGHT:
+			var value = evaluate_hand($StrangerRight/Hand)
+			if value >= 31.0:
+				add_text_line("The " + $StrangerRight.get_name_bbcode() +
+					" reveals " +
+					"[color=" + NUMBER_COLOR + "]" +
+					str(value) + "[/color]" +
+					"!")
+				$StrangerRight/Hand.reveal_cards()
+				var win_quote = $StrangerRight.get_win_quote()
+				if win_quote:
+					add_text_line(win_quote)
+				state = STATE.END
+				return
 			enable_player_controls()
 			state = STATE.PLAYER
-			if has_passed:
+			if player_pass_turn >= 0:
 				advance_state()
 		_:
 			pass
 
 func enable_player_controls():
-	if has_passed:
+	if player_pass_turn >= 0:
 		return
 	$PlayerHand.set_process_input(true)
 	$Table.set_process_input(true)
@@ -515,7 +565,12 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 			allHands[(ai_index + 2) % 4],
 			allHands[(ai_index + 3) % 4])
 		brain.evaluate()
-	if brain.wantsToPass or turn >= MAX_TURNS_PER_PLAYER:
+	if (brain.wantsToPass
+			or (turn >= MAX_TURNS_PER_PLAYER
+				and (randi() % 2) == 0)
+			or (player_pass_turn >= 0
+				and turn >= player_pass_turn + MAX_TURNS_AFTER_PLAYER
+				and turn >= MIN_TURNS_PER_PLAYER)):
 		add_text_line("The " + stranger.get_name_bbcode() +
 			" locks in their hand.")
 		ai_has_passed[ai_index] = true
@@ -548,7 +603,7 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 			card_name(tableCard) + ", discarding " + card_name(ownCard) + ".")
 		hand.exchange_cards(ownCard, tableCard)
 		$Table.exchange_cards(tableCard, ownCard)
-		if (has_passed and ai_has_passed[(ai_index + 1) % 3] and
+		if (player_pass_turn >= 0 and ai_has_passed[(ai_index + 1) % 3] and
 				ai_has_passed[(ai_index + 2) % 3]):
 			ai_has_passed[ai_index] = true
 			hand.has_passed = true

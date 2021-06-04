@@ -115,6 +115,26 @@ func get_introduction_name_bbcode():
 	text += " " + get_name_bbcode()
 	return text
 
+func get_win_quote():
+	var quote = null
+	match ADJECTIVES[$Face.frame]:
+		'Welcoming': quote = "It seems I win this time!"
+		'Monstrous': quote = "You can't beat me, hahaha."
+		'Affable': quote = "Luck is one my side this time."
+		'Boastful': quote = "I win yet again!"
+		'Ominous': quote = "It seems I have outsmarted you all."
+		'Jolly': quote = "Ha, what fun this game is!"
+		'Loud': quote = "Haha! Read 'em and weep."
+		'Tired': quote = "This is a winning hand, right?"
+		'Peculiar': quote = "Tadaa!"
+		'Callous': quote = "You fools are hardly worth my time."
+		'Quiet': return null
+		'Glum': quote = "I guess I got lucky."
+	if quote == null:
+		return null
+	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+		quote + "[/color]")
+
 func get_reveal_quote():
 	var quote = null
 	match ADJECTIVES[$Face.frame]:
