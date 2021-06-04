@@ -17,6 +17,8 @@ enum STATE {
 	END,
 	ACCUSATIONS,
 	ACCUSE,
+	CULL_DEFEATED,
+	ADD_FRESH_BLOOD,
 	GAME_OVER
 }
 
@@ -104,6 +106,33 @@ func _input(ev):
 							$DoNotAccuseButton.visible = true
 						current_accusation = x
 						replace_text_line(Stranger.get_strategy_bbcode(x))
+				STATE.CULL_DEFEATED:
+					var defeats = 0
+					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
+						if bot.defeated:
+							var defeat_quote = bot.get_defeat_quote()
+							if defeat_quote != null:
+								add_text_line(defeat_quote)
+							add_text_line("The " + bot.get_name_bbcode() +
+								" leaves the table.")
+							defeats += 1
+					if defeats > unused_strategies.size():
+						add_text_line("You win!")
+						# TODO more satisfying ending with boss battle
+						state = STATE.GAME_OVER
+						return
+					state = STATE.ADD_FRESH_BLOOD
+				STATE.ADD_FRESH_BLOOD:
+					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
+						if bot.defeated:
+							if unused_strategies.size() > 0:
+								add_stranger(bot)
+							else:
+								add_text_line("You win!")
+								# TODO more satisfying ending with boss battle
+								state = STATE.GAME_OVER
+								return
+					state = STATE.START
 				STATE.GAME_OVER:
 					pass
 		else:
@@ -388,8 +417,16 @@ func reveal_and_score():
 			add_text_line("Game over.")
 			state = STATE.GAME_OVER
 	else:
-		# TODO kick out revealed losers
-		state = STATE.START
+		var defeats = 0
+		for i in range(0, 3):
+			var bot = bots[i]
+			if bot.revealed and values[i] == lowest_value:
+				bot.defeated = true
+				defeats += 1
+		if defeats > 0:
+			state = STATE.CULL_DEFEATED
+		else:
+			state = STATE.START
 
 func prepare_brain_input(input, ownHand: Hand, isSpy: bool,
 		leftHand: Hand, midHand: Hand, rightHand: Hand):
@@ -487,6 +524,8 @@ func add_stranger(stranger: Stranger):
 	stranger.become_stranger(face)
 	unused_faces.remove(unused_faces.find(face))
 	unused_strategies.remove(unused_strategies.find(strategy))
+	add_text_line(stranger.get_introduction_name_bbcode() +
+		" sits down at your table.")
 
 func add_text_line(line):
 	text_lines.pop_front()

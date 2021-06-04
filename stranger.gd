@@ -9,6 +9,7 @@ const BOSS_FRAME = 11
 
 const REVEALED_COLOR = '#dc8b58'
 const STRANGER_COLOR = '#8d659a'
+const QUOTE_COLOR = '#9c9887'
 
 const ADJECTIVES = [
 	'Affable',
@@ -54,6 +55,7 @@ enum STRATEGY {
 
 var revealed = false
 var accused = false
+var defeated = false
 var strategy = null
 
 
@@ -65,6 +67,7 @@ func become_innkeeper():
 func become_stranger(i: int):
 	revealed = false
 	accused = false
+	defeated = false
 	$Face.frame = i
 	var name = ADJECTIVES[i] + ' Stranger'
 	$Name.bbcode_text = '[color=' + STRANGER_COLOR + ']' + name + '[/color]'
@@ -84,6 +87,37 @@ func reveal_identity():
 
 func get_name_bbcode():
 	return $Name.bbcode_text
+
+func get_introduction_name_bbcode():
+	var adjective = ADJECTIVES[$Face.frame]
+	var text = "A"
+	# English majors: sue me.
+	var vowels = ['A', 'I', 'E', 'O', 'U']
+	if vowels.find(adjective[0]) >= 0:
+		text += "n"
+	text += " " + get_name_bbcode()
+	return text
+
+func get_defeat_quote():
+	var quote = null
+	match ADJECTIVES[$Face.frame]:
+		'Welcoming': quote = "Well, time for me to get back to work!"
+		'Monstrous': quote = "What... wait... WHAT?!"
+		'Affable': quote = "Well played!"
+		'Boastful': quote = "Hmpf. I'll get you next time!"
+		'Ominous': quote = "Why you little... I'll get you for this!"
+		'Jolly': quote = "Woah, what a game! Same time tomorrow?"
+		'Loud': return ("The " + get_name_bbcode() +
+			" throws their across the room.")
+		'Tired': quote = "Huh. I guess it's time for me to go to bed."
+		'Peculiar': quote = "Time to leave!"
+		'Callous': quote = "You better sleep with one eye open tonight!"
+		'Quiet': return null
+		'Glum': quote = "Another day, another disappointment."
+	if quote == null:
+		return null
+	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+		quote + "[/color]")
 
 static func get_accusation_card(s: int):
 	return STRATEGY_CARDS[s]
