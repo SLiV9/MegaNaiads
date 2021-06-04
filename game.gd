@@ -36,7 +36,6 @@ var current_accusation = null
 func _ready():
 	randomize()
 	$StrangerLeft.become_innkeeper()
-	$StrangerLeft.reveal_identity()
 	unused_faces = range(0, 10)
 	unused_strategies = range(0, 11)
 	unused_strategies.remove(unused_strategies.find($StrangerLeft.strategy))
@@ -218,7 +217,41 @@ func _input(ev):
 							replace_text_line("You've accused the " +
 								accused.get_name_bbcode() + " of being " +
 								Stranger.get_accusation_bbcode(x) + "!")
-							# TODO reveal if true
+							if x == Stranger.get_accusation_card(
+									accused.strategy):
+								accused.reveal_identity()
+								var reveal_quote = accused.get_reveal_quote()
+								if reveal_quote:
+									add_text_line(reveal_quote)
+								else:
+									add_text_line("You are correct!")
+							else:
+								var reject_quote = accused.get_reject_quote()
+								if reject_quote:
+									add_text_line(reject_quote)
+								else:
+									add_text_line("You are wrong.")
+								if accused.strategy == Stranger.STRATEGY.KNIGHT:
+									accused.reveal_identity()
+									add_text_line("The " +
+										accused.get_name_bbcode() +
+										" draws their sword, swings and " +
+										" cuts your head clean off.")
+									add_text_line("Game over.")
+									disable_player_controls()
+									state = STATE.GAME_OVER
+									return
+								else:
+									player_lives -= 1
+									if player_lives > 0:
+										add_text_line("You have " +
+											str(player_lives) + " lives left.")
+										state = STATE.ACCUSATIONS
+									else:
+										add_text_line("Game over.")
+										disable_player_controls()
+										state = STATE.GAME_OVER
+										return
 						disable_player_controls()
 						state = STATE.ACCUSATIONS
 					elif $DoNotAccuseButton.pressed:

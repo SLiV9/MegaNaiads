@@ -98,6 +98,51 @@ func get_introduction_name_bbcode():
 	text += " " + get_name_bbcode()
 	return text
 
+func get_reveal_quote():
+	var quote = null
+	match ADJECTIVES[$Face.frame]:
+		'Welcoming': quote = ("Right you are!" +
+			" I'm also the owner of this fine establishment." +
+			" Now see if you can beat me!")
+		'Monstrous': quote = "WAAAH!"
+		'Affable': quote = "Ha, you've caught me."
+		'Boastful': quote = ("And I would have gotten away with it," +
+			" if it wasn't for your meddling...")
+		'Ominous': quote = "Bah! And so I must step into the light."
+		'Jolly': quote = "Hahaha! I got you good, didn't I?"
+		'Loud': quote = "ARGH! YOU ARE NOT SUPPOSED TO NOTICE!"
+		'Tired': quote = "Oh, yeah, that's me alright."
+		'Peculiar': quote = "Indeed!"
+		'Callous': quote = "You little snitch!"
+		'Quiet': quote = "Damn."
+		'Glum': quote = "Am I that obvious?"
+	if quote == null:
+		return null
+	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+		quote + "[/color]")
+
+func get_reject_quote():
+	var quote = null
+	match ADJECTIVES[$Face.frame]:
+		'Welcoming': quote = "No, not quite. Give it another go."
+		'Monstrous': quote = "Hahahaha! You know nothing!"
+		'Affable': quote = "No, you must have me confused with someone else."
+		'Boastful': quote = "Ha! You're terrible at this, aren't you?"
+		'Ominous': quote = "Ha! You fool!"
+		'Jolly': quote = "What, me? No, hahaha."
+		'Loud': quote = "Nuh-uh!"
+		'Tired': quote = "What? No I don't have time for that sort of stuff."
+		'Peculiar': quote = "Who, me? What a thought."
+		'Callous': quote = "You insolent brat! You dare accuse me?"
+		'Quiet': quote = "Huh?"
+		'Glum': quote = "I wish."
+	if strategy == STRATEGY.KNIGHT:
+		quote += " I am an honerable Knight!"
+	if quote == null:
+		return null
+	return (get_name_bbcode() + ": [color=" + QUOTE_COLOR + "]" +
+		quote + "[/color]")
+
 func get_defeat_quote():
 	var quote = null
 	match ADJECTIVES[$Face.frame]:
