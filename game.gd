@@ -438,7 +438,8 @@ func reveal_and_score():
 		".")
 	values.push_back(player_value)
 	var lowest_value = values.min()
-	if lowest_value > 30.0:
+	var highest_value = values.max()
+	if lowest_value == highest_value:
 		add_text_line("It's a tie!")
 		state = STATE.START
 	elif player_value == lowest_value:
@@ -458,6 +459,8 @@ func reveal_and_score():
 				defeats += 1
 		if defeats > 0:
 			state = STATE.CULL_DEFEATED
+		elif player_value == highest_value:
+			state = STATE.ACCUSATIONS
 		else:
 			state = STATE.START
 

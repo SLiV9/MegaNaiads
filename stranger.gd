@@ -71,7 +71,24 @@ func become_stranger(i: int):
 	$Face.frame = i
 	var name = ADJECTIVES[i] + ' Stranger'
 	$Name.bbcode_text = '[color=' + STRANGER_COLOR + ']' + name + '[/color]'
-	$Brain.load("brains/A_1_0_0.pth.tar")
+	match strategy:
+		STRATEGY.ARTIST:
+			$Brain.load("brains/artist_72740_72385_0_cpu.pth.tar")
+		STRATEGY.FOOL:
+			$Brain.load("brains/fool_72734_72178_72542_cpu.pth.tar")
+		STRATEGY.FORGER:
+			$Brain.load("brains/forger_72775_72591_72405_cpu.pth.tar")
+		STRATEGY.ILLUSIONIST:
+			$Brain.load("brains/illusionist_72785_72603_72609_cpu.pth.tar")
+		STRATEGY.SPY:
+			$Brain.load("brains/spy_72799_72615_72610_cpu.pth.tar")
+		STRATEGY.TRICKSTER:
+			$Brain.load("brains/trickster_72756_72568_72213_cpu.pth.tar")
+		_: match (randi() % 4):
+			0: $Brain.load("brains/A_72324_72140_71770_cpu.pth.tar")
+			1: $Brain.load("brains/B_72706_72515_72521_cpu.pth.tar")
+			2: $Brain.load("brains/C_72716_72537_72351_cpu.pth.tar")
+			3: $Brain.load("brains/X_72852_71769_0_cpu.pth.tar")
 
 func reveal_identity():
 	revealed = true
