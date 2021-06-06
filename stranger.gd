@@ -213,7 +213,7 @@ func get_defeat_quote():
 		'Ominous': quote = "Why you little... I'll get you for this!"
 		'Jolly': quote = "Woah, what a game! Same time tomorrow?"
 		'Loud': return ("The " + get_name_bbcode() +
-			" throws their across the room.")
+			" throws their chair across the room.")
 		'Tired': quote = "Huh. I guess it's time for me to go to bed."
 		'Peculiar': quote = "Time to leave!"
 		'Callous': quote = "You better sleep with one eye open tonight!"

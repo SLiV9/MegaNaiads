@@ -55,6 +55,7 @@ func _ready():
 	unused_faces = range(0, 10)
 	unused_strategies = range(0, 11)
 	unused_strategies.remove(unused_strategies.find($StrangerLeft.strategy))
+	unused_strategies.shuffle()
 	$StrangerLeft.visible = false
 	$StrangerMid.visible = false
 	$StrangerRight.visible = false
