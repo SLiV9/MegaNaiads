@@ -704,26 +704,29 @@ func reveal_and_score():
 		else:
 			state = STATE.START
 
-func prepare_brain_input(input, ownHand: Hand, isSpy: bool,
-		leftHand: Hand, midHand: Hand, rightHand: Hand):
+func prepare_brain_input(input, ownHand: Hand, isSpy: bool, isGoon: bool,
+		leftHand: Hand, midHand: Hand, rightHand: Hand,
+		relativePlayerIndex: int, relativeBossIndex: int):
 	input.resize((1 + 4 + 4 + 1) * NUM_CARDS)
 	for i in range(0, input.size()):
 		input[i] = 0
 	for i in range(0, 3):
 		input[$Table.cards[i]] = 1
+	for i in range(0, 3):
 		input[1 * NUM_CARDS + ownHand.cards[i]] = 1
-		input[2 * NUM_CARDS + leftHand.cards[i]] = 1
-		input[3 * NUM_CARDS + midHand.cards[i]] = 1
-		input[4 * NUM_CARDS + rightHand.cards[i]] = 1
-		input[5 * NUM_CARDS + ownHand.cards[i]] = 1
-		input[6 * NUM_CARDS + leftHand.cards[i]] = (isSpy or
-			leftHand.has_been_public[i])
-		input[7 * NUM_CARDS + midHand.cards[i]] = (isSpy or
-			midHand.has_been_public[i])
-		input[8 * NUM_CARDS + rightHand.cards[i]] = (isSpy or
-			rightHand.has_been_public[i])
+	for c in ownHand.public_card_history:
+		input[5 * NUM_CARDS + c] = 1
+	for t in range(0, 3):
+		var enemyHands = [leftHand, midHand, rightHand]
+		var enemyHand = enemyHands[t]
+		for i in range(0, 3):
+			if (enemyHand.public_card_history.find(enemyHand.cards[i]) >= 0 or
+					(isGoon && relativeBossIndex == t + 1) or
+					isSpy):
+				input[(2 + t) * NUM_CARDS + leftHand.cards[i]] = 1
+		for c in enemyHand.public_card_history:
+			input[(6 + t) * NUM_CARDS + c] = 1
 	input[9 * NUM_CARDS + 0] = 1
-	# TODO change this for the boss battle
 	input[9 * NUM_CARDS + 1] = 1
 	input[9 * NUM_CARDS + 2] = 1
 	input[9 * NUM_CARDS + 3] = 1
@@ -731,10 +734,10 @@ func prepare_brain_input(input, ownHand: Hand, isSpy: bool,
 	input[9 * NUM_CARDS + 5] = leftHand.has_passed
 	input[9 * NUM_CARDS + 6] = midHand.has_passed
 	input[9 * NUM_CARDS + 7] = rightHand.has_passed
-	input[9 * NUM_CARDS + 8] = ownHand == $PlayerHand
-	input[9 * NUM_CARDS + 9] = leftHand == $PlayerHand
-	input[9 * NUM_CARDS + 10] = midHand == $PlayerHand
-	input[9 * NUM_CARDS + 11] = rightHand == $PlayerHand
+	if relativePlayerIndex >= 0:
+		input[9 * NUM_CARDS + 8 + relativePlayerIndex] = 1
+	if relativeBossIndex >= 0:
+		input[9 * NUM_CARDS + 12 + relativeBossIndex] = 1
 
 func enact_ai_action(ai_index: int, stranger: Stranger):
 	var hand = stranger.get_node("Hand")
@@ -747,13 +750,21 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 		brain.ownCard = hand.cards[randi() % hand.cards.size()]
 		brain.tableCard = $Table.cards[randi() % $Table.cards.size()]
 	else:
+		var relativePlayerIndex = 3 - ai_index
+		var relativeBossIndex = -1
+		var others = [$StrangerLeft, $StrangerMid, $StrangerRight]
+		for i in range(0, 3):
+			if others[i].strategy == Stranger.STRATEGY.BOSS:
+				relativeBossIndex = (i - ai_index + 4) % 4
 		var allHands = [$StrangerLeft/Hand, $StrangerMid/Hand,
 			$StrangerRight/Hand, $PlayerHand]
 		prepare_brain_input(brain.input, hand,
 			stranger.strategy == Stranger.STRATEGY.SPY,
+			stranger.strategy == Stranger.STRATEGY.GOON,
 			allHands[(ai_index + 1) % 4],
 			allHands[(ai_index + 2) % 4],
-			allHands[(ai_index + 3) % 4])
+			allHands[(ai_index + 3) % 4],
+			relativePlayerIndex, relativeBossIndex)
 		brain.evaluate()
 	if (brain.wantsToPass
 			or (turn >= MAX_TURNS_PER_PLAYER

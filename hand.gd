@@ -3,9 +3,9 @@ extends Node2D
 class_name Hand
 
 var cards = []
+var public_card_history = []
 var revealed = false
 var has_passed = false
-var has_been_public = [false, false, false]
 
 
 func _ready():
@@ -43,11 +43,10 @@ func deal_card(card):
 
 func discard_all_cards():
 	cards = []
+	public_card_history = []
 	var cardSprites = [$Card1, $Card2, $Card3, $Card4, $Card5, $Card6]
 	for i in range(0, 6):
 		cardSprites[i].visible = false
-	for i in range(0, 3):
-		has_been_public[i] = false
 	has_passed = false
 
 func exchange_cards(oldCard, newCard):
@@ -55,7 +54,8 @@ func exchange_cards(oldCard, newCard):
 	for i in range(0, cards.size()):
 		if cards[i] == oldCard:
 			cards[i] = newCard
-			has_been_public[i] = true
+			add_to_public_card_history(oldCard)
+			add_to_public_card_history(newCard)
 			if cardSprites[i].get_frame() == oldCard:
 				cardSprites[i].set_frame(newCard)
 			cardSprites[i].position.y = 48
@@ -66,6 +66,10 @@ func get_raised_card():
 		if cardSprites[i].position.y < 48:
 			return cards[i]
 	return null
+
+func add_to_public_card_history(card):
+	if public_card_history.find(card) < 0:
+		public_card_history.push_back(card)
 
 
 func _input(ev):
