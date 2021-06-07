@@ -62,6 +62,30 @@ var accused = false
 var defeated = false
 var strategy = null
 
+var visibility_delay = null
+var sound_delay = null
+
+
+func arrive(delay: float):
+	visibility_delay = delay + 0.05
+	sound_delay = delay
+
+func _process(delta):
+	if visibility_delay != null:
+		visibility_delay -= delta
+		if visibility_delay < 0:
+			visibility_delay = null
+			visible = true
+	if sound_delay != null:
+		sound_delay -= delta
+		if sound_delay < 0:
+			sound_delay = null
+			play_arrive_sound_now()
+
+func play_arrive_sound_now():
+	var sounds = [$ArriveSound1, $ArriveSound2]
+	sounds[randi() % sounds.size()].play()
+
 
 
 func become_innkeeper():

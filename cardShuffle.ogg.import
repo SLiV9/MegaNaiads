@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/cardShuffle.ogg-119166f09b9c9fd9a9dae1d10310b6bb.oggstr"
+
+[deps]
+
+source_file="res://cardShuffle.ogg"
+dest_files=[ "res://.import/cardShuffle.ogg-119166f09b9c9fd9a9dae1d10310b6bb.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

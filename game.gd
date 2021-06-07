@@ -14,6 +14,7 @@ enum STATE {
 	INTRO1,
 	INTRO2,
 	ASK_TUTORIAL,
+	TUTORIAL0,
 	TUTORIAL1,
 	TUTORIAL2,
 	TUTORIAL3,
@@ -47,6 +48,9 @@ var player_lives = 3
 var current_accusation = null
 var boss_battle = false
 var boss_revealed = false
+var animation_delay = null
+var player_controls_delay = null
+var player_accusation_controls_delay = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -62,6 +66,7 @@ func _ready():
 	$StrangerLeft/Emote.visible = false
 	$StrangerMid/Emote.visible = false
 	$StrangerRight/Emote.visible = false
+	$Table.become_table()
 	clear_table()
 	match (randi() % 4):
 		0: add_text_line("The sound of crackling fire" +
@@ -79,18 +84,42 @@ func _ready():
 	disable_player_controls()
 	set_process_input(true)
 
+func _process(delta):
+	if animation_delay != null:
+		animation_delay -= delta
+		if animation_delay < 0:
+			animation_delay = null
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	elif Input.get_mouse_mode() == Input.MOUSE_MODE_HIDDEN:
+		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	if player_controls_delay != null:
+		player_controls_delay -= delta
+		if player_controls_delay < 0:
+			player_controls_delay = null
+			enable_player_controls(-1)
+	if player_accusation_controls_delay != null:
+		player_accusation_controls_delay -= delta
+		if player_accusation_controls_delay < 0:
+			player_accusation_controls_delay = null
+			enable_player_accusation_controls(-1)
+
 func _input(ev):
 	if ev is InputEventMouseButton:
+		if animation_delay != null:
+			return
 		if ev.pressed:
 			match state:
 				STATE.INTRO1:
-					$StrangerLeft.visible = true
+					var delay = 0.5
+					$StrangerLeft.arrive(delay)
 					add_text_line("Someone spots you from across the room," +
 						" flashes you a big grin and then approaches. The " +
 						$StrangerLeft.get_name_bbcode() +
 						" takes a seat at your table.")
+					start_animations(delay)
 					state = STATE.INTRO2
 				STATE.INTRO2:
+					var delay = 0
 					add_text_line("The " +
 						$StrangerLeft.get_name_bbcode() +
 						" produces a deck of cards and start shuffling.")
@@ -98,15 +127,21 @@ func _input(ev):
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"Do you know how to play?" + "[/color]")
 					$AccuseButton.text = "YES"
-					$AccuseButton.visible = true
 					$DoNotAccuseButton.text = "NO, TEACH ME"
-					$DoNotAccuseButton.visible = true
+					disable_player_controls()
+					delay += 0.5
+					start_animations(delay)
+					enable_player_accusation_controls(delay)
 					state = STATE.ASK_TUTORIAL
+				STATE.TUTORIAL0:
+					var delay = 0
+					add_stranger($StrangerMid, delay)
+					delay += 0.5
+					add_stranger($StrangerRight, delay)
+					delay += 0.5
+					start_animations(delay)
+					state = STATE.TUTORIAL1
 				STATE.TUTORIAL1:
-					add_stranger($StrangerMid)
-					add_stranger($StrangerRight)
-					$StrangerMid.visible = true
-					$StrangerRight.visible = true
 					deal_cards()
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
@@ -115,14 +150,17 @@ func _input(ev):
 						"[/color]")
 					state = STATE.TUTORIAL2
 				STATE.TUTORIAL2:
+					var delay = 0.5
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"On your turn, you can take a card from the table" +
 						" in exchange for one from your hand." +
 						" Try to collect cards of the same suit." +
 						"[/color]")
+					start_animations(delay)
 					state = STATE.TUTORIAL3
 				STATE.TUTORIAL3:
+					var delay = 0.5
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"Aces are worth" +
@@ -134,8 +172,10 @@ func _input(ev):
 						" Seven through Ten..." +
 						" well I'm sure you can figure those out." +
 						"[/color]")
+					start_animations(delay)
 					state = STATE.TUTORIAL4
 				STATE.TUTORIAL4:
+					var delay = 0.5
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"If someone gets to" +
@@ -145,15 +185,19 @@ func _input(ev):
 						" Otherwise the game continues until everyone" +
 						" is satisfied with their hand and locks in." +
 						"[/color]")
+					start_animations(delay)
 					state = STATE.TUTORIAL5
 				STATE.TUTORIAL5:
+					var delay = 0.5
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"At the end of the round," +
 						" the player with the worst hand has to pay up." +
 						"[/color]")
+					start_animations(delay)
 					state = STATE.TUTORIAL6
 				STATE.TUTORIAL6:
+					var delay = 0.5
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"Oh, if you collect three of a kind," +
@@ -165,8 +209,10 @@ func _input(ev):
 						" Not enough to end the game," +
 						" but worth looking out for." +
 						"[/color]")
+					start_animations(delay)
 					state = STATE.TUTORIAL7
 				STATE.TUTORIAL7:
+					var delay = 0.5
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"One last thing:" +
@@ -174,52 +220,64 @@ func _input(ev):
 						" you can take the lot!" +
 						" But you won't be able to change cards afterwards." +
 						"[/color]")
+					start_animations(delay)
 					state = STATE.TUTORIAL8
 				STATE.TUTORIAL8:
+					var delay = 0.5
 					add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
 						" [color=" + Stranger.QUOTE_COLOR + "]" +
 						"That's it!" +
 						"[/color]")
-					start_playing()
+					delay += 0.5
+					start_animations(delay)
+					start_playing(delay)
 				STATE.PLAYER:
 					if player_pass_turn < 0:
 						var ownCard = $PlayerHand.get_raised_card()
 						var tableCard = $Table.get_raised_card()
 						if ownCard != null and tableCard != null:
+							var delay = 0.35
 							add_text_line("You took " + card_name(tableCard) +
 								", discarding " + card_name(ownCard) + ".")
-							$PlayerHand.exchange_cards(ownCard, tableCard)
-							$Table.exchange_cards(tableCard, ownCard)
+							$PlayerHand.exchange_cards(ownCard, tableCard,
+								delay)
+							delay += 0.25
+							$Table.exchange_cards(tableCard, ownCard, delay)
+							delay += 0.25
+							start_animations(delay)
 							if ai_has_passed.min() == true:
 								player_pass_turn = turn
 								$PlayerHand.has_passed = true
 							advance_state()
 				STATE.BOT_LEFT:
-					if $PlayerHand.is_any_card_clicked(ev):
-						return
-					if $Table.is_any_card_clicked(ev):
-						return
+					#if $PlayerHand.detect_invalid_card_click(ev):
+					#	return
+					#if $Table.detect_invalid_card_click(ev):
+					#	return
 					enact_ai_action(0, $StrangerLeft)
 					advance_state()
 				STATE.BOT_MID:
-					if $PlayerHand.is_any_card_clicked(ev):
-						return
-					if $Table.is_any_card_clicked(ev):
-						return
+					#if $PlayerHand.detect_invalid_card_click(ev):
+					#	return
+					#if $Table.detect_invalid_card_click(ev):
+					#	return
 					enact_ai_action(1, $StrangerMid)
 					advance_state()
 				STATE.BOT_RIGHT:
-					if $PlayerHand.is_any_card_clicked(ev):
-						return
-					if $Table.is_any_card_clicked(ev):
-						return
+					#if $PlayerHand.detect_invalid_card_click(ev):
+					#	return
+					#if $Table.detect_invalid_card_click(ev):
+					#	return
 					enact_ai_action(2, $StrangerRight)
 					advance_state()
 				STATE.END:
 					reveal_and_score()
 				STATE.START:
 					deal_cards()
-					start_playing()
+					if animation_delay != null:
+						start_playing(animation_delay + 1.0)
+					else:
+						start_playing(-1)
 				STATE.ACCUSATIONS:
 					if not $NoAccusationsButton.visible:
 						clear_table()
@@ -240,11 +298,11 @@ func _input(ev):
 					var x = $PlayerHand.get_raised_card()
 					if accused != null and x != null:
 						if $AccuseButton.visible == false:
-							$AccuseButton.visible = true
-							$DoNotAccuseButton.visible = true
+							enable_player_accusation_controls(-1)
 						current_accusation = x
 						replace_text_line(Stranger.get_strategy_bbcode(x))
 				STATE.CULL_DEFEATED:
+					var delay = 0.5
 					var defeats = 0
 					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
 						if bot.defeated:
@@ -267,17 +325,21 @@ func _input(ev):
 								unused_strategies.push_back(
 									Stranger.STRATEGY.GOON)
 					clear_table()
+					start_animations(delay)
 					state = STATE.ADD_FRESH_BLOOD
 				STATE.ADD_FRESH_BLOOD:
+					var delay = 0
 					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
 						if bot.defeated:
 							if unused_strategies.size() > 0:
-								add_stranger(bot)
+								add_stranger(bot, delay)
 							else:
 								unused_strategies = [Stranger.STRATEGY.GOON]
-								add_stranger(bot)
+								add_stranger(bot, delay)
+							delay += 0.5
 							if boss_revealed:
 								bot.reveal_identity()
+					start_animations(delay)
 					state = STATE.START
 				STATE.GAME_OVER:
 					pass
@@ -285,6 +347,7 @@ func _input(ev):
 			match state:
 				STATE.ASK_TUTORIAL:
 					if $AccuseButton.pressed:
+						$AccuseButton/ClickSound.play()
 						add_text_line("You nod." +
 							" From behind you, you hear people approaching.")
 						add_text_line($StrangerLeft.get_name_semicolon_bbcode() +
@@ -292,13 +355,17 @@ func _input(ev):
 							"Excellent!" + "[/color]")
 						$AccuseButton.text = "ACCUSE"
 						$DoNotAccuseButton.text = "DO NOT ACCUSE"
-						add_stranger($StrangerMid)
-						add_stranger($StrangerRight)
-						$StrangerMid.visible = true
-						$StrangerRight.visible = true
+						var delay = 1.0
+						add_stranger($StrangerMid, delay)
+						delay += 0.5
+						add_stranger($StrangerRight, delay)
+						delay += 0.5
+						start_animations(delay)
 						disable_player_controls()
 						state = STATE.START
 					elif $DoNotAccuseButton.pressed:
+						$DoNotAccuseButton/ClickSound.play()
+						var delay = 0.5
 						add_text_line("Before you can speak, the " +
 							$StrangerLeft.get_name_bbcode() +
 							" sees the confused look on your face and laughs.")
@@ -309,12 +376,15 @@ func _input(ev):
 							"[/color]")
 						$AccuseButton.text = "ACCUSE"
 						$DoNotAccuseButton.text = "DO NOT ACCUSE"
+						start_animations(delay)
 						disable_player_controls()
-						state = STATE.TUTORIAL1
+						state = STATE.TUTORIAL0
 				STATE.PLAYER:
 					if player_pass_turn >= 0:
 						state = STATE.BOT_LEFT
 					elif $PassButton.pressed:
+						$PassButton/ClickSound.play()
+						var delay = 0.5
 						player_pass_turn = turn
 						$PlayerHand.has_passed = true
 						add_text_line("You locked in " +
@@ -322,8 +392,11 @@ func _input(ev):
 							stringify_value(evaluate_hand($PlayerHand)) +
 							"[/color]" +
 							".")
+						start_animations(delay)
 						advance_state()
 					elif $SwapButton.pressed:
+						$SwapButton/ClickSound.play()
+						var delay = 0.50
 						add_text_line("You took " +
 							card_name($Table.cards[0]) + ", " +
 							card_name($Table.cards[1]) + " and " +
@@ -339,24 +412,33 @@ func _input(ev):
 						for i in range(0, 3):
 							var ownCard = $PlayerHand.cards[i]
 							var tableCard = $Table.cards[i]
-							$PlayerHand.exchange_cards(ownCard, tableCard)
-							$Table.exchange_cards(tableCard, ownCard)
+							$PlayerHand.exchange_cards(ownCard, tableCard,
+								delay)
+							$Table.exchange_cards(tableCard, ownCard,
+								delay + 0.5)
+							delay += 0.05
+						delay += 0.5
+						start_animations(delay)
 						player_pass_turn = turn
 						$PlayerHand.has_passed = true
 						advance_state()
 				STATE.ACCUSATIONS:
 					if $NoAccusationsButton.pressed:
+						$NoAccusationsButton/ClickSound.play()
+						var delay = 0.5
 						if current_accusation != null:
 							replace_text_line("You did not accuse anyone else.")
 						else:
 							replace_text_line("You did not accuse anyone.")
 						current_accusation = null
+						start_animations(delay)
 						disable_player_controls()
 						state = STATE.START
 						return
 					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
 						var button = bot.get_node("AccusationButton")
 						if button.visible && button.pressed:
+							button.get_node("ClickSound").play()
 							bot.accused = true
 							state = STATE.ACCUSE
 							$PlayerHand.discard_all_cards()
@@ -375,13 +457,19 @@ func _input(ev):
 											unused_strategies[i]))
 							accusations.shuffle()
 							current_accusation = null
+							var delay = 0.5
 							for accusation in accusations:
-								$PlayerHand.deal_card(accusation)
+								$PlayerHand.deal_card(accusation, delay)
+								delay += 0.1
 							disable_player_controls()
-							$PlayerHand.set_process_input(true)
+							delay += 0.5
+							start_animations(delay)
+							enable_player_accusation_controls(delay)
 							break
 				STATE.ACCUSE:
 					if $AccuseButton.pressed:
+						$AccuseButton/ClickSound.play()
+						var delay = 0.5
 						var accused = null
 						for bot in [$StrangerLeft, $StrangerMid,
 								$StrangerRight]:
@@ -416,6 +504,7 @@ func _input(ev):
 										" draws their sword, swings and " +
 										" cuts your head clean off.")
 									add_text_line("Game over.")
+									start_animations(delay)
 									disable_player_controls()
 									state = STATE.GAME_OVER
 									return
@@ -426,9 +515,11 @@ func _input(ev):
 											str(player_lives) + " lives left.")
 									else:
 										add_text_line("Game over.")
+										start_animations(delay)
 										disable_player_controls()
 										state = STATE.GAME_OVER
 										return
+						start_animations(delay)
 						disable_player_controls()
 						if boss_revealed:
 							for bot in [$StrangerLeft, $StrangerMid,
@@ -439,7 +530,10 @@ func _input(ev):
 						else:
 							state = STATE.ACCUSATIONS
 					elif $DoNotAccuseButton.pressed:
+						$DoNotAccuseButton/ClickSound.play()
+						var delay = 0.5
 						$PlayerHand.discard_all_cards()
+						start_animations(delay)
 						disable_player_controls()
 						state = STATE.ACCUSATIONS
 				_:
@@ -454,11 +548,14 @@ func clear_table():
 
 func deal_cards():
 	clear_table()
+	var delay = 0
 	var deck = range(0, NUM_NORMAL_CARDS)
 	deck.shuffle()
+	$StrangerLeft/Hand.shuffle_deck()
+	delay += 1.0
 	var i = 0
-	$PlayerHand.reveal_cards()
-	$Table.reveal_cards()
+	$PlayerHand.reveal_cards(-1)
+	$Table.reveal_cards(-1)
 	$StrangerLeft/Hand.hide_cards()
 	$StrangerMid/Hand.hide_cards()
 	$StrangerRight/Hand.hide_cards()
@@ -466,7 +563,10 @@ func deal_cards():
 	var trickeries = range(0, 3)
 	trickeries.shuffle()
 	for t in range(0, 3):
-		$PlayerHand.deal_card(deck[i])
+		$PlayerHand.deal_card(deck[i], delay)
+		delay += 0.25
+		if t == 0:
+			delay += 0.05
 		i += 1
 		for bot in bots:
 			match bot.strategy:
@@ -503,9 +603,17 @@ func deal_cards():
 							deck[i] = deck[trickj]
 							deck[trickj] = tmp
 				_: pass
-			bot.get_node("Hand").deal_card(deck[i])
+			bot.get_node("Hand").deal_card(deck[i], delay)
+			delay += 0.25
+			if t == 0:
+				delay += 0.05
 			i += 1
-		$Table.deal_card(deck[i])
+	delay += 0.3
+	for t in range(0, 3):
+		$Table.deal_card(deck[i], delay)
+		delay += 0.3
+		if t == 0:
+			delay += 0.05
 		i += 1
 	for u in range(0, bots.size()):
 		var bot: Stranger = bots[u]
@@ -521,11 +629,16 @@ func deal_cards():
 					for t in range(0, 3):
 						var ownCard = bruteHand.cards[t]
 						var otherCard = otherHand.cards[t]
-						bruteHand.exchange_cards(ownCard, otherCard)
-						otherHand.exchange_cards(otherCard, ownCard)
+						bruteHand.exchange_cards(ownCard, otherCard, -1)
+						otherHand.exchange_cards(otherCard, ownCard, -1)
 					break
+	start_animations(delay)
 
-func start_playing():
+func start_animations(delay: float):
+	animation_delay = delay
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+
+func start_playing(delay: float):
 	var startingStates = [STATE.PLAYER, STATE.BOT_LEFT, STATE.BOT_MID,
 		STATE.BOT_RIGHT]
 	state = startingStates[randi() % startingStates.size()]
@@ -535,7 +648,7 @@ func start_playing():
 	disable_player_controls()
 	match state:
 		STATE.PLAYER:
-			enable_player_controls()
+			enable_player_controls(delay)
 			add_text_line("You start this round.")
 		STATE.BOT_LEFT:
 			var name = $StrangerLeft.get_name_bbcode()
@@ -571,15 +684,20 @@ func advance_state():
 		STATE.BOT_LEFT:
 			var value = evaluate_hand($StrangerLeft/Hand)
 			if value >= 31.0:
+				var delay = 0
+				if animation_delay != null:
+					delay = animation_delay + 1.5
 				add_text_line("The " + $StrangerLeft.get_name_bbcode() +
 					" reveals " +
 					"[color=" + NUMBER_COLOR + "]" +
 					stringify_value(value) + "[/color]" +
 					"!")
-				$StrangerLeft/Hand.reveal_cards()
+				$StrangerLeft/Hand.reveal_cards(delay)
+				delay += 0.5
 				var win_quote = $StrangerLeft.get_win_quote()
 				if win_quote:
 					add_text_line(win_quote)
+				start_animations(delay)
 				state = STATE.END
 				return
 			state = STATE.BOT_MID
@@ -588,15 +706,20 @@ func advance_state():
 		STATE.BOT_MID:
 			var value = evaluate_hand($StrangerMid/Hand)
 			if value >= 31.0:
+				var delay = 0
+				if animation_delay != null:
+					delay = animation_delay + 1.5
 				add_text_line("The " + $StrangerMid.get_name_bbcode() +
 					" reveals " +
 					"[color=" + NUMBER_COLOR + "]" +
 					stringify_value(value) + "[/color]" +
 					"!")
-				$StrangerMid/Hand.reveal_cards()
+				$StrangerMid/Hand.reveal_cards(delay)
+				delay += 0.5
 				var win_quote = $StrangerMid.get_win_quote()
 				if win_quote:
 					add_text_line(win_quote)
+				start_animations(delay)
 				state = STATE.END
 				return
 			state = STATE.BOT_RIGHT
@@ -605,21 +728,31 @@ func advance_state():
 		STATE.BOT_RIGHT:
 			var value = evaluate_hand($StrangerRight/Hand)
 			if value >= 31.0:
+				var delay = 0
+				if animation_delay != null:
+					delay = animation_delay + 1.5
 				add_text_line("The " + $StrangerRight.get_name_bbcode() +
 					" reveals " +
 					"[color=" + NUMBER_COLOR + "]" +
 					stringify_value(value) + "[/color]" +
 					"!")
-				$StrangerRight/Hand.reveal_cards()
+				$StrangerRight/Hand.reveal_cards(delay)
+				delay += 0.5
 				var win_quote = $StrangerRight.get_win_quote()
 				if win_quote:
 					add_text_line(win_quote)
+				start_animations(delay)
 				state = STATE.END
 				return
-			enable_player_controls()
 			state = STATE.PLAYER
 			if player_pass_turn >= 0:
 				advance_state()
+			else:
+				var delay = 0
+				if animation_delay != null:
+					delay = animation_delay + 1.0
+				start_animations(delay)
+				enable_player_controls(delay)
 		_:
 			pass
 
@@ -629,9 +762,13 @@ func stringify_value(value):
 	else:
 		return str(value)
 
-func enable_player_controls():
+func enable_player_controls(delay: float):
+	if delay >= 0:
+		player_controls_delay = delay
+		return
 	if player_pass_turn >= 0:
 		return
+	$PlayerHand.focus()
 	$PlayerHand.set_process_input(true)
 	$Table.set_process_input(true)
 	$PassButton.text = ("LOCK IN (" +
@@ -640,6 +777,15 @@ func enable_player_controls():
 	$SwapButton.text = ("TAKE ALL (" +
 		stringify_value(evaluate_hand($Table)) + ")")
 	$SwapButton.visible = true
+
+func enable_player_accusation_controls(delay: float):
+	if delay >= 0:
+		player_accusation_controls_delay = delay
+		return
+	$PlayerHand.focus()
+	$PlayerHand.set_process_input(true)
+	$AccuseButton.visible = true
+	$DoNotAccuseButton.visible = true
 
 func disable_player_controls():
 	$PlayerHand.set_process_input(false)
@@ -655,6 +801,7 @@ func disable_player_controls():
 func reveal_and_score():
 	var player_value = evaluate_hand($PlayerHand)
 	var values = []
+	var delay = 0
 	var bots = [$StrangerLeft, $StrangerMid, $StrangerRight]
 	for i in range(0, bots.size()):
 		var bot: Stranger = bots[i]
@@ -669,7 +816,8 @@ func reveal_and_score():
 			if bot.strategy == bot.STRATEGY.ILLUSIONIST and value <= 30.0:
 				perform_illusion(hand)
 				value = evaluate_hand(hand)
-			hand.reveal_cards()
+			hand.reveal_cards(delay)
+			delay += 0.5
 			add_text_line("The " + bot.get_name_bbcode() + " reveals " +
 				"[color=" + NUMBER_COLOR + "]" +
 				stringify_value(value) + "[/color]" +
@@ -680,6 +828,7 @@ func reveal_and_score():
 		stringify_value(player_value) + "[/color]" +
 		".")
 	values.push_back(player_value)
+	start_animations(delay)
 	var lowest_value = values.min()
 	var highest_value = values.max()
 	if lowest_value == highest_value:
@@ -785,11 +934,14 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 			or (player_pass_turn >= 0
 				and turn >= player_pass_turn + MAX_TURNS_AFTER_PLAYER
 				and turn >= MIN_TURNS_PER_PLAYER)):
+		var delay = 0.25
 		add_text_line("The " + stranger.get_name_bbcode() +
 			" locks in their hand.")
+		start_animations(delay)
 		ai_has_passed[ai_index] = true
 		hand.has_passed = true
 	elif brain.wantsToSwap:
+		var delay = 0.25
 		add_text_line("The " + stranger.get_name_bbcode() + " takes " +
 			card_name($Table.cards[0]) + ", " +
 			card_name($Table.cards[1]) + " and " +
@@ -805,24 +957,32 @@ func enact_ai_action(ai_index: int, stranger: Stranger):
 		for i in range(0, 3):
 			var ownCard = hand.cards[i]
 			var tableCard = $Table.cards[i]
-			hand.exchange_cards(ownCard, tableCard)
-			$Table.exchange_cards(tableCard, ownCard)
-			hand.reveal_cards()
+			hand.exchange_cards(ownCard, tableCard, delay)
+			$Table.exchange_cards(tableCard, ownCard, delay + 0.5)
+			hand.reveal_cards(delay)
+			delay += 0.05
+		delay += 0.5
+		delay += 0.2
+		start_animations(delay)
 		ai_has_passed[ai_index] = true
 		hand.has_passed = true
 	else:
 		var ownCard = brain.ownCard
 		var tableCard = brain.tableCard
+		var delay = 0.25
 		add_text_line("The " + stranger.get_name_bbcode() + " takes " +
 			card_name(tableCard) + ", discarding " + card_name(ownCard) + ".")
-		hand.exchange_cards(ownCard, tableCard)
-		$Table.exchange_cards(tableCard, ownCard)
+		hand.exchange_cards(ownCard, tableCard, delay)
+		delay += 0.2
+		$Table.exchange_cards(tableCard, ownCard, delay)
+		delay += 0.2
+		start_animations(delay)
 		if (player_pass_turn >= 0 and ai_has_passed[(ai_index + 1) % 3] and
 				ai_has_passed[(ai_index + 2) % 3]):
 			ai_has_passed[ai_index] = true
 			hand.has_passed = true
 
-func add_stranger(stranger: Stranger):
+func add_stranger(stranger: Stranger, delay: float):
 	if unused_faces.size() == 0:
 		unused_faces = range(0, 10)
 	var face = unused_faces[randi() % unused_faces.size()]
@@ -834,8 +994,10 @@ func add_stranger(stranger: Stranger):
 	if face != Stranger.BOSS_FRAME:
 		unused_faces.remove(unused_faces.find(face))
 	unused_strategies.remove(unused_strategies.find(strategy))
+	# TODO delay
 	add_text_line(stranger.get_introduction_name_bbcode() +
 		" sits down at your table.")
+	stranger.arrive(delay)
 
 func add_text_line(line):
 	text_lines.pop_front()
@@ -894,12 +1056,12 @@ func perform_illusion(hand: Hand):
 		if diamondFace < FACE_VALUES.size() - 1:
 			var oldCard = diamondFace * 4 + 1
 			var newCard = diamondFace * 4 + 2
-			hand.exchange_cards(oldCard, newCard)
+			hand.exchange_cards(oldCard, newCard, -1)
 	elif valueOfSpades >= 14 and clubFace != null:
 		if clubFace < FACE_VALUES.size() - 1:
 			var oldCard = clubFace * 4 + 0
 			var newCard = clubFace * 4 + 3
-			hand.exchange_cards(oldCard, newCard)
+			hand.exchange_cards(oldCard, newCard, -1)
 
 func evaluate_hand(hand: Hand):
 	return $Game.evaluate_hand(hand.cards[0], hand.cards[1], hand.cards[2])

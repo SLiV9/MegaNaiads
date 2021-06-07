@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/cardPlace2.ogg-33e3da6a59a20590658d122064549d1d.oggstr"
+
+[deps]
+
+source_file="res://cardPlace2.ogg"
+dest_files=[ "res://.import/cardPlace2.ogg-33e3da6a59a20590658d122064549d1d.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

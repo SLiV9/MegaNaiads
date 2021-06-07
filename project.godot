@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Sprite",
+"class": "Card",
+"language": "GDScript",
+"path": "res://card.gd"
+}, {
 "base": "Node2D",
 "class": "Hand",
 "language": "GDScript",
@@ -20,6 +25,7 @@ _global_script_classes=[ {
 "path": "res://stranger.gd"
 } ]
 _global_script_class_icons={
+"Card": "",
 "Hand": "",
 "Stranger": ""
 }
@@ -33,13 +39,19 @@ config/icon="res://icon.png"
 [debug]
 
 settings/fps/force_fps=60
-settings/stdout/print_fps=true
 gdscript/warnings/integer_division=false
 
 [display]
 
 window/size/width=1200
 window/size/height=800
+
+[importer_defaults]
+
+ogg_vorbis={
+"loop": false,
+"loop_offset": 0
+}
 
 [rendering]
 

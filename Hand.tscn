@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Card.tscn" type="PackedScene" id=1]
 [ext_resource path="res://hand.gd" type="Script" id=2]
+[ext_resource path="res://chipsStack6.ogg" type="AudioStream" id=3]
+[ext_resource path="res://cardFan1.ogg" type="AudioStream" id=4]
 
 [node name="Hand" type="Node2D"]
 position = Vector2( 112, 32 )
@@ -23,3 +25,9 @@ position = Vector2( 320, 48 )
 
 [node name="Card6" parent="." instance=ExtResource( 1 )]
 position = Vector2( 392, 48 )
+
+[node name="PlayerTurnSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 3 )
+
+[node name="ShuffleSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 4 )
