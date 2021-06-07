@@ -72,6 +72,15 @@ func add_to_public_card_history(card):
 		public_card_history.push_back(card)
 
 
+func is_any_card_clicked(ev: InputEventMouseButton):
+	var cardSprites = [$Card1, $Card2, $Card3, $Card4, $Card5, $Card6]
+	var clickedIndex = null
+	for i in range(0, cardSprites.size()):
+		var s = cardSprites[i]
+		if s.visible and s.get_rect().has_point(s.to_local(ev.position)):
+			return true
+	return false
+
 func _input(ev):
 	if ev is InputEventMouseButton:
 		var cardSprites = [$Card1, $Card2, $Card3, $Card4, $Card5, $Card6]

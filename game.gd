@@ -195,12 +195,24 @@ func _input(ev):
 								$PlayerHand.has_passed = true
 							advance_state()
 				STATE.BOT_LEFT:
+					if $PlayerHand.is_any_card_clicked(ev):
+						return
+					if $Table.is_any_card_clicked(ev):
+						return
 					enact_ai_action(0, $StrangerLeft)
 					advance_state()
 				STATE.BOT_MID:
+					if $PlayerHand.is_any_card_clicked(ev):
+						return
+					if $Table.is_any_card_clicked(ev):
+						return
 					enact_ai_action(1, $StrangerMid)
 					advance_state()
 				STATE.BOT_RIGHT:
+					if $PlayerHand.is_any_card_clicked(ev):
+						return
+					if $Table.is_any_card_clicked(ev):
+						return
 					enact_ai_action(2, $StrangerRight)
 					advance_state()
 				STATE.END:
@@ -254,6 +266,7 @@ func _input(ev):
 							for _i in range(1, defeats):
 								unused_strategies.push_back(
 									Stranger.STRATEGY.GOON)
+					clear_table()
 					state = STATE.ADD_FRESH_BLOOD
 				STATE.ADD_FRESH_BLOOD:
 					for bot in [$StrangerLeft, $StrangerMid, $StrangerRight]:
