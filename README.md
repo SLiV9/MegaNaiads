@@ -9,6 +9,8 @@ The software is provided "as is", without warranty of any kind, express or impli
 The following free assets were used:
 - ["2-bit Doodle People" by Buch](https://opengameart.org/content/2-bit-doodle-people), with modified color palette;
 - [Playing cards by Nora Shishi, rh0, devurandom and Kumpu](https://opengameart.org/content/dice-trumps), with modified color palette;
-- Emotes by [Kenny](https://www.kenney.nl);
-- 1-bit Pack [Kenny](https://www.kenney.nl);
+- Emotes by [Kenney](https://www.kenney.nl);
+- 1-bit Pack by [Kenney](https://www.kenney.nl);
+- Casino sounds by [Kenney](https://www.kenney.nl);
+- RPG sounds by [Kenney](https://www.kenney.nl);
 - [Texturina font by Guillermo Torres, Omnibus-Type](https://fonts.google.com/specimen/Texturina).
