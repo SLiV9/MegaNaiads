@@ -80,26 +80,26 @@ func become_stranger(i: int):
 func load_brain():
 	match strategy:
 		STRATEGY.ARTIST:
-			$Brain.load("brains/artist_67153_66997_0_cpu.pth.tar")
+			$Brain.load("brains/artist_923962_923789_923628_cpu.pth.tar")
 		STRATEGY.FOOL:
-			$Brain.load("brains/fool_67142_66973_0_cpu.pth.tar")
+			$Brain.load("brains/fool_924120_923773_923941_cpu.pth.tar")
 		STRATEGY.FORGER:
-			$Brain.load("brains/forger_67184_67014_0_cpu.pth.tar")
+			$Brain.load("brains/forger_924160_923986_923822_cpu.pth.tar")
 		STRATEGY.ILLUSIONIST:
-			$Brain.load("brains/illusionist_319206_319034_319036_cpu.pth.tar")
+			$Brain.load("brains/illusionist_924171_923837_923660_cpu.pth.tar")
 		STRATEGY.SPY:
-			$Brain.load("brains/spy_67209_64869_0_cpu.pth.tar")
+			$Brain.load("brains/spy_924178_924012_0_cpu.pth.tar")
 		STRATEGY.TRICKSTER:
-			$Brain.load("brains/trickster_67177_67006_67005_cpu.pth.tar")
+			$Brain.load("brains/trickster_924135_923978_0_cpu.pth.tar")
 		STRATEGY.GOON:
-			$Brain.load("brains/goon_67230_67068_66226_cpu.pth.tar")
+			$Brain.load("brains/goon_924197_924024_924035_cpu.pth.tar")
 		STRATEGY.BOSS:
-			$Brain.load("brains/boss_66733_66568_0_cpu.pth.tar")
+			$Brain.load("brains/boss_924044_923876_923881_cpu.pth.tar")
 		_: match (randi() % 4):
-			0: $Brain.load("brains/A_319108_318934_318936_cpu.pth.tar")
-			1: $Brain.load("brains/B_319122_318944_318945_cpu.pth.tar")
-			2: $Brain.load("brains/C_319130_318963_318961_cpu.pth.tar")
-			3: $Brain.load("brains/X_67259_66916_67083_cpu.pth.tar")
+			0: $Brain.load("brains/A_924073_923735_923898_cpu.pth.tar")
+			1: $Brain.load("brains/B_924079_923923_0_cpu.pth.tar")
+			2: $Brain.load("brains/C_924101_923933_923591_cpu.pth.tar")
+			3: $Brain.load("brains/X_924227_923548_924056_cpu.pth.tar")
 
 func reveal_identity():
 	revealed = true
